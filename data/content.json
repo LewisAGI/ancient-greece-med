@@ -1,0 +1,643 @@
+{
+ "meta": {
+  "pack": "ancient-greece-med",
+  "version": 1,
+  "created": "2026-10-22",
+  "note": "Period boundaries are conventions and vary by source."
+ },
+ "periods": [
+  {
+   "id": "per1",
+   "text": "Geometric period ca. 900-700 BC.",
+   "sources": [
+    "met-chron"
+   ],
+   "label": "evidence",
+   "start": -900,
+   "end": -700
+  },
+  {
+   "id": "per2",
+   "text": "Archaic period ca. 700-480 BC (Pyrgos Museum: Orientalising 700-610, Archaic 610-490/480).",
+   "sources": [
+    "met-chron",
+    "pyrgos"
+   ],
+   "label": "evidence",
+   "start": -700,
+   "end": -480
+  },
+  {
+   "id": "per3",
+   "text": "Classical period ca. 480-323 BC, including Persian Wars (490-479), Delian League, Peloponnesian War (431-404); ends with Alexander's death 323 BC.",
+   "sources": [
+    "met-chron",
+    "met-class"
+   ],
+   "label": "evidence",
+   "start": -480,
+   "end": -323
+  },
+  {
+   "id": "per4",
+   "text": "Hellenistic period 323-31 BC; ends conventionally with the Battle of Actium (31 BC). Successor kingdoms: Seleucids, Ptolemies, Antigonids.",
+   "sources": [
+    "met-chron",
+    "met-hell"
+   ],
+   "label": "evidence",
+   "start": -323,
+   "end": -31
+  },
+  {
+   "id": "per5",
+   "text": "Roman rule over the Greek mainland 146 BC-330 AD.",
+   "sources": [
+    "met-chron"
+   ],
+   "label": "evidence",
+   "start": -146,
+   "end": 330
+  },
+  {
+   "id": "per6",
+   "text": "Minoan civilisation flourished 2800-1100 BCE; Mycenaean civilisation spread 1600-1100 BC.",
+   "sources": [
+    "unesco-minoan",
+    "unesco-mycenae"
+   ],
+   "label": "evidence"
+  }
+ ],
+ "myths_places": [
+  {
+   "id": "m1",
+   "text": "Delos: by legend the birthplace of Apollo and Artemis; called 'the most sacred of all islands' (Callimachus).",
+   "sources": [
+    "unesco-delos"
+   ],
+   "label": "evidence",
+   "place": "Delos"
+  },
+  {
+   "id": "m2",
+   "text": "Delphi: Pan-Hellenic sanctuary of Apollo and oracle of the Pythia; regarded as the omphalos (centre of the world).",
+   "sources": [
+    "unesco-delphi"
+   ],
+   "label": "evidence",
+   "place": "Delphi"
+  },
+  {
+   "id": "m3",
+   "text": "Mycenae: the kingdom of the mythical Agamemnon; Mycenaean culture inspired Homer's epics.",
+   "sources": [
+    "unesco-mycenae"
+   ],
+   "label": "evidence",
+   "place": "Mycenae"
+  },
+  {
+   "id": "m4",
+   "text": "Olympia: centre of the worship of Zeus.",
+   "sources": [
+    "unesco-olympia"
+   ],
+   "label": "evidence",
+   "place": "Olympia"
+  },
+  {
+   "id": "m5",
+   "text": "Hesiod, Theogony: Aphrodite grew from the sea-foam, drew near Cythera, then came to Cyprus - hence Cytherea and Cyprogenes.",
+   "sources": [
+    "pg-hesiod"
+   ],
+   "label": "evidence",
+   "place": "Cythera; Cyprus",
+   "primary_text": "Hesiod, Theogony (Evelyn-White)"
+  },
+  {
+   "id": "m6",
+   "text": "Hesiod, Theogony: Rhea was sent to Lyctus in Crete to bear Zeus; Earth hid him in a cave on Mount Aegeum and Cronos was given a stone in swaddling clothes.",
+   "sources": [
+    "pg-hesiod"
+   ],
+   "label": "evidence",
+   "place": "Lyctus, Crete",
+   "primary_text": "Hesiod, Theogony"
+  },
+  {
+   "id": "m7",
+   "text": "Hesiod, Theogony opens with the Heliconian Muses; Works and Days mentions Hesiod dedicating a tripod to the Muses of Helicon.",
+   "sources": [
+    "pg-hesiod"
+   ],
+   "label": "evidence",
+   "place": "Mount Helicon",
+   "primary_text": "Hesiod"
+  },
+  {
+   "id": "m8",
+   "text": "Homeric Hymn to Apollo: Leto sought a place to bear Apollo; he was born on Delos, which he claimed as his chosen seat.",
+   "sources": [
+    "pg-hesiod",
+    "unesco-delos"
+   ],
+   "label": "evidence",
+   "place": "Delos",
+   "primary_text": "Homeric Hymn to Apollo (Delian part)"
+  },
+  {
+   "id": "m9",
+   "text": "Homeric Hymn to Apollo: Apollo founds his temple at Crisa below Parnassus (Pytho), slays the she-dragon, and in dolphin form brings Cretan priests.",
+   "sources": [
+    "pg-hesiod",
+    "unesco-delphi"
+   ],
+   "label": "evidence",
+   "place": "Delphi (Pytho)",
+   "primary_text": "Homeric Hymn to Apollo (Pythian part)"
+  },
+  {
+   "id": "m10",
+   "text": "Iliad, Catalogue of Ships: those who held 'the strong city of Mycenae, rich Corinth and Cleonae' sent a hundred ships.",
+   "sources": [
+    "pg-iliad",
+    "unesco-mycenae"
+   ],
+   "label": "evidence",
+   "place": "Mycenae",
+   "primary_text": "Iliad 2 (Butler)"
+  },
+  {
+   "id": "m11",
+   "text": "Iliad: the Greeks were detained at Aulis on their way to Troy.",
+   "sources": [
+    "pg-iliad"
+   ],
+   "label": "evidence",
+   "place": "Aulis",
+   "primary_text": "Iliad 2"
+  },
+  {
+   "id": "m12",
+   "text": "Iliad: Troy is the setting; the archaeological site of Troy has 4,000 years of history.",
+   "sources": [
+    "pg-iliad",
+    "unesco-troy"
+   ],
+   "label": "evidence",
+   "place": "Troy"
+  },
+  {
+   "id": "m13",
+   "text": "Odyssey: Odysseus's home is Ithaca; Telemachus voyages to Pylos and Sparta.",
+   "sources": [
+    "pg-odyssey"
+   ],
+   "label": "evidence",
+   "place": "Ithaca; Pylos; Sparta",
+   "primary_text": "Odyssey (Butler)"
+  },
+  {
+   "id": "m14",
+   "text": "Odyssey: Odysseus reaches Scheria, land of the Phaeacians; Circe lives on the Aeaean island; the Sun's cattle are on the Thrinacian island; Calypso on Ogygia. (Real-world locations are uncertain/debated.)",
+   "sources": [
+    "pg-odyssey"
+   ],
+   "label": "evidence",
+   "place": "Scheria; Aeaea; Thrinacia; Ogygia",
+   "uncertainty": "mythical geography"
+  },
+  {
+   "id": "m15",
+   "text": "Pausanias 2.1.3-4: at Cromyon Theseus overcame the sow Phaea; at the Isthmus he killed the brigand Sinis, who tore victims apart with pine trees.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Isthmus of Corinth",
+   "primary_text": "Pausanias 2.1"
+  },
+  {
+   "id": "m16",
+   "text": "Pausanias 2.1.6: Corinthians say Poseidon and Helius disputed the land; Briareos gave Poseidon the Isthmus and Helius the height (Acrocorinth), later handed to Aphrodite (2.4.6).",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Corinth / Acrocorinth"
+  },
+  {
+   "id": "m17",
+   "text": "Pausanias 2.3.2: Peirene was a woman who became a spring through tears for her son Cenchrias, killed by Artemis.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Corinth, Peirene spring"
+  },
+  {
+   "id": "m18",
+   "text": "Pausanias 2.3.6-7: the Well of Glauce and the tomb of Medea's children at Corinth.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Corinth"
+  },
+  {
+   "id": "m19",
+   "text": "Pausanias 2.7.7: after killing Pytho, Apollo and Artemis came to Aegialea (Sicyon) for purification.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Sicyon"
+  },
+  {
+   "id": "m20",
+   "text": "Pausanias 2.13.7: Phlius claimed an Omphalos, 'the center of all the Peloponnesus', and a House of Divination where Amphiaraus first divined.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Phlius"
+  },
+  {
+   "id": "m21",
+   "text": "Pausanias 2.14.1: at Celeae mysteries of Demeter were held every fourth year, modelled on Eleusis.",
+   "sources": [
+    "theoi-paus2"
+   ],
+   "label": "evidence",
+   "place": "Celeae (Phlius)"
+  },
+  {
+   "id": "m22",
+   "text": "Paphos includes Nea Paphos, 'Aphrodite's Sacred City'.",
+   "sources": [
+    "unesco-paphos",
+    "pg-hesiod"
+   ],
+   "label": "evidence",
+   "place": "Paphos, Cyprus"
+  }
+ ],
+ "sites": [
+  {
+   "id": "s1",
+   "text": "Acropolis of Athens; fortified since 13th c. BC; cult of Athena from 8th c. BC; UNESCO 1987.",
+   "sources": [
+    "unesco-acropolis"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.97087,
+    "lon": 23.72618,
+    "source_format": "N37 58 15.132 E23 43 34.248"
+   }
+  },
+  {
+   "id": "s2",
+   "text": "Delphi, on Mt Parnassus slopes; oracle developed from 8th c. BC; UNESCO 1987.",
+   "sources": [
+    "unesco-delphi"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 38.48149,
+    "lon": 22.49617,
+    "source_format": "N38 28 53.364 E22 29 46.212"
+   }
+  },
+  {
+   "id": "s3",
+   "text": "Olympia, Elis, at confluence of Alpheios and Kladeos; UNESCO 1989.",
+   "sources": [
+    "unesco-olympia"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.64,
+    "lon": 21.634,
+    "source_format": "N37 38 24 E21 38 2.4"
+   }
+  },
+  {
+   "id": "s4",
+   "text": "Delos, Cyclades; free port after 167 BC; UNESCO 1990.",
+   "sources": [
+    "unesco-delos"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.4,
+    "lon": 25.26667,
+    "source_format": "N37 23 60 E25 16 0.012"
+   }
+  },
+  {
+   "id": "s5",
+   "text": "Sanctuary of Asklepios at Epidaurus.",
+   "sources": [
+    "unesco-epidaurus"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.6,
+    "lon": 23.08056,
+    "source_format": "N37 36 0 E23 4 50"
+   }
+  },
+  {
+   "id": "s6",
+   "text": "Mycenae and Tiryns, Argolis; UNESCO 1999.",
+   "sources": [
+    "unesco-mycenae"
+   ],
+   "label": "evidence",
+   "coords": null
+  },
+  {
+   "id": "s7",
+   "text": "Minoan Palatial Centres (Knossos, Phaistos, Malia, Zakros, Zominthos, Kydonia), Crete; UNESCO 2025.",
+   "sources": [
+    "unesco-minoan"
+   ],
+   "label": "evidence",
+   "coords": null
+  },
+  {
+   "id": "s8",
+   "text": "Troy (Türkiye): 4,000 years of history; first contact between Anatolia and the Mediterranean world.",
+   "sources": [
+    "unesco-troy"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 39.95644,
+    "lon": 26.239,
+    "source_format": "N39 57 23.184 E26 14 20.4"
+   },
+   "country_region": null,
+   "unesco_year": 1998
+  },
+  {
+   "id": "s9",
+   "text": "Paestum and Velia within Cilento (Italy); Greek colonists among successive occupants.",
+   "sources": [
+    "unesco-paestum"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1998
+  },
+  {
+   "id": "s10",
+   "text": "Syracuse and Pantalica (Sicily): ancient Greek town and rock necropolis.",
+   "sources": [
+    "unesco-syracuse"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 2005
+  },
+  {
+   "id": "s11",
+   "text": "Agrigento, Valley of the Temples (Sicily): Greek colony founded 6th c. BCE.",
+   "sources": [
+    "unesco-agrigento"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.28972,
+    "lon": 13.59333,
+    "source_format": "N37 17 23 E13 35 36"
+   },
+   "country_region": null,
+   "unesco_year": 1997
+  },
+  {
+   "id": "s12",
+   "text": "Pompeii, Herculaneum, Torre Annunziata (Italy).",
+   "sources": [
+    "unesco-pompeii"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1997
+  },
+  {
+   "id": "s13",
+   "text": "Megalithic Temples of Malta, 4th-3rd millennium BC; among earliest free-standing stone buildings.",
+   "sources": [
+    "unesco-malta"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1980
+  },
+  {
+   "id": "s14",
+   "text": "Carthage (Tunisia): founded by Phoenicians; Punic metropolis and later Roman provincial capital.",
+   "sources": [
+    "unesco-carthage"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1979
+  },
+  {
+   "id": "s15",
+   "text": "Leptis Magna (Libya): Phoenician port of 7th c. BCE, embellished by the Severans.",
+   "sources": [
+    "unesco-leptis"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 32.63833,
+    "lon": 14.29306,
+    "source_format": "N32 38 17.988 E14 17 35.016"
+   },
+   "country_region": null,
+   "unesco_year": 1982
+  },
+  {
+   "id": "s16",
+   "text": "Cyrene (Libya).",
+   "sources": [
+    "unesco-cyrene"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 32.825,
+    "lon": 21.85833,
+    "source_format": "N32 49 30 E21 51 29.988"
+   },
+   "country_region": null,
+   "unesco_year": 1982
+  },
+  {
+   "id": "s17",
+   "text": "Byblos (Lebanon): continuously inhabited since Neolithic; witness to the beginnings of Phoenician civilisation.",
+   "sources": [
+    "unesco-byblos"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 34.11917,
+    "lon": 35.64556,
+    "source_format": "N34 7 9.012 E35 38 44"
+   },
+   "country_region": null,
+   "unesco_year": 1984
+  },
+  {
+   "id": "s18",
+   "text": "Paphos (Cyprus): Nea Paphos and Kouklia.",
+   "sources": [
+    "unesco-paphos"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1980
+  },
+  {
+   "id": "s19",
+   "text": "Butrint (Albania), ~20 km from Saranda.",
+   "sources": [
+    "unesco-butrint"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 39.74573,
+    "lon": 20.02095,
+    "source_format": "N39 44 44.635 E20 1 15.42"
+   },
+   "country_region": null,
+   "unesco_year": 1992
+  },
+  {
+   "id": "s20",
+   "text": "Ephesus (Türkiye): settlement from 7th millennium BCE; shifting shoreline relocated the city.",
+   "sources": [
+    "unesco-ephesus"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 2015
+  },
+  {
+   "id": "s21",
+   "text": "Pergamon (Türkiye): Attalid capital founded 3rd c. BC.",
+   "sources": [
+    "unesco-pergamon"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 2014
+  },
+  {
+   "id": "s22",
+   "text": "Hierapolis-Pamukkale (Türkiye): Hellenistic spa town above travertine terraces.",
+   "sources": [
+    "unesco-hierapolis"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.92389,
+    "lon": 29.12333,
+    "source_format": "N37 55 26.004 E29 7 23.988"
+   },
+   "country_region": null,
+   "unesco_year": 1988
+  },
+  {
+   "id": "s23",
+   "text": "Xanthos-Letoon (Türkiye): Lycian civilisation.",
+   "sources": [
+    "unesco-xanthos"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1988
+  },
+  {
+   "id": "s24",
+   "text": "Medieval City of Rhodes (Knights of St John 1309-1523).",
+   "sources": [
+    "unesco-rhodes"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 36.44722,
+    "lon": 28.22778,
+    "source_format": "N36 26 49.992 E28 13 40.008"
+   },
+   "country_region": null,
+   "unesco_year": 1988
+  },
+  {
+   "id": "s25",
+   "text": "Aigai/Vergina: royal capital of Macedon, Temenid dynasty of Philip II and Alexander.",
+   "sources": [
+    "unesco-aigai"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1996
+  },
+  {
+   "id": "s26",
+   "text": "Temple of Apollo Epicurius at Bassae, Arcadia, 2nd half 5th c. BC.",
+   "sources": [
+    "unesco-bassae"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 37.43498,
+    "lon": 21.89694,
+    "source_format": "N37 26 5.928 E21 53 48.984"
+   },
+   "country_region": null,
+   "unesco_year": 1986
+  },
+  {
+   "id": "s27",
+   "text": "Pythagoreion and Heraion of Samos.",
+   "sources": [
+    "unesco-samos"
+   ],
+   "label": "evidence",
+   "coords": null,
+   "country_region": null,
+   "unesco_year": 1992
+  },
+  {
+   "id": "s28",
+   "text": "Philippi: refounded by Philip II 356 BCE on the Via Egnatia; later Roman colony.",
+   "sources": [
+    "unesco-philippi"
+   ],
+   "label": "evidence",
+   "coords": {
+    "lat": 41.01472,
+    "lon": 24.28528,
+    "source_format": "N41 0 53 E24 17 7"
+   },
+   "country_region": null,
+   "unesco_year": 2016
+  }
+ ]
+}

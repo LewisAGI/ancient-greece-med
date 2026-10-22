@@ -1,0 +1,30 @@
+# Tests and the production build.
+# Cloudflare Pages project ancient-greece-med is deployed by the HOHM bridge
+# from dist/ after `npm ci && npm run build`. This workflow does not read
+# Cloudflare secrets.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=desktop --project=iphone --project=landscape
