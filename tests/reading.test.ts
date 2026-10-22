@@ -1,17 +1,31 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { loadCatalog } from '../src/data/load';
+import { loadCatalog, entryById } from '../src/data/load';
+import { withEra } from '../src/era';
+import { layoutShifts } from '../src/globe/createGlobe';
 import { GODS } from '../src/gods';
-import { entryById } from '../src/data/load';
+import { MAX_PIN_OFFSET, NUDGE_MIN_ZOOM, LABEL_MIN_ZOOM, markerOffsets, overlappingGroups, visibleLabelIds, type LabelBox } from '../src/labels';
+import { SOURCES_NOTICE } from '../src/notice';
 import { entryCredits, readingEntries, translatorCredit } from '../src/reading';
 import { formatYear } from '../src/years';
-import { withEra } from '../src/era';
-import { LABEL_MIN_ZOOM, MAX_PIN_OFFSET, markerOffsets, overlappingGroups, visibleLabelIds, type LabelBox } from '../src/labels';
 
 describe('withEra', () => {
   it('writes BCE and CE without touching words that already use them', () => {
     expect(withEra('ca. 700-480 BC and 330 AD')).toBe('ca. 700-480 BCE and 330 CE');
     expect(withEra('480 BCE')).toBe('480 BCE');
     expect(withEra('B.C.')).toBe('BCE');
+    expect(withEra('A.D.')).toBe('CE');
+    const bassae = entryById(loadCatalog().content, 's26');
+    expect(bassae?.text.endsWith('BC.')).toBe(true);
+    expect(withEra(bassae?.text ?? '')).toBe((bassae?.text ?? '').replace(/BC\./g, 'BCE.'));
+    expect(withEra(bassae?.text ?? '').endsWith('BCE.')).toBe(true);
+    expect(withEra(SOURCES_NOTICE)).toBe(SOURCES_NOTICE);
+    const sources = JSON.parse(readFileSync('data/sources.json', 'utf8')) as { id: string; url: string }[];
+    const perseus = sources.find((source) => source.id === 'perseus-il2');
+    expect(perseus?.url).toBe(
+      'http://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0217%3Abook%3D2%3Acard%3D301',
+    );
+    expect(withEra(perseus?.url ?? '')).toBe(perseus?.url);
   });
 });
 
@@ -119,6 +133,40 @@ describe('markerOffsets', () => {
     expect(offsets.get('a')).toEqual({ dx: 0, dy: 0 });
     expect(offsets.get('b')).toEqual({ dx: 0, dy: 0 });
     expect(overlappingGroups(points, offsets).map((group) => group.memberIds)).toEqual([['a', 'b']]);
+  });
+
+  it('does not give a lone pin a count badge', () => {
+    const points = [
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 10, y: 0 },
+      { id: 'c', x: 400, y: 0 },
+    ];
+    const groups = overlappingGroups(points, new Map(), 32);
+    expect(groups.map((group) => group.memberIds)).toEqual([['a', 'b']]);
+    expect(groups.some((group) => group.memberIds.length < 2)).toBe(false);
+    expect(overlappingGroups([{ id: 'solo', x: 0, y: 0 }], new Map())).toEqual([]);
+  });
+
+  it('rejects a spiral corner that would pass the offset cap', () => {
+    const points = [
+      { id: 'a', x: 200, y: 200 },
+      { id: 'b', x: 200, y: 200 },
+    ];
+    const maxOffset = 40;
+    const offsets = markerOffsets(points, {
+      maxOffset,
+      bounds: { left: 0, top: 0, right: 400, bottom: 400 },
+    });
+    const shift = offsets.get('b') ?? { dx: 0, dy: 0 };
+    expect(Math.hypot(shift.dx, shift.dy)).toBeLessThanOrEqual(maxOffset + 0.5);
+  });
+
+  it('keeps the globe layout inside two pin widths even when the frame is huge', () => {
+    const points = Array.from({ length: 12 }, (_, index) => ({ id: `p${index}`, x: 400, y: 400 }));
+    const shifts = layoutShifts(points, NUDGE_MIN_ZOOM, { left: 0, top: 0, right: 2000, bottom: 2000 });
+    shifts.forEach((shift) => {
+      expect(Math.hypot(shift.dx, shift.dy)).toBeLessThanOrEqual(MAX_PIN_OFFSET + 0.5);
+    });
   });
 
   it('separates a stack of pins that share one screen point', () => {

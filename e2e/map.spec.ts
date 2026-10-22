@@ -250,6 +250,15 @@ test('timeline, search, glossary, compare, and story pages', async ({ page }) =>
   expect(abuMena).toBe('clear');
   await page.locator('.sheet-close, .maplibregl-popup-close-button').click();
 
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.locator('#search-input').fill('Bassae');
+  await page.locator('#search-panel [data-entry="s26"]').click();
+  const bassae = page.locator('.event-sheet, .maplibregl-popup');
+  await expect(bassae).toContainText('5th c. BCE.');
+  const bassaeText = await bassae.innerText();
+  expect(bassaeText).not.toMatch(/\bBC\./);
+  await page.locator('.sheet-close, .maplibregl-popup-close-button').click();
+
   await page.getByRole('button', { name: 'Filter', exact: true }).click();
   await page.getByRole('button', { name: 'West', exact: true }).click();
   await expect(page.locator('.pin[data-place="s36"]')).toHaveCount(1);

@@ -9,9 +9,24 @@ import {
   overlappingGroups,
   visibleLabelIds,
   type LabelBox,
+  type MarkerFrame,
+  type MarkerPoint,
 } from '../labels';
 import { flyToBBox, framePadding, settlePins, type BBox } from './camera';
 import { mapStyle } from './style';
+
+/** Nudge cap used when the globe lays pins out. Two pin widths, not a wide spiral. */
+export function layoutShifts(
+  projected: MarkerPoint[],
+  zoom: number,
+  bounds: MarkerFrame,
+): Map<string, { dx: number; dy: number }> {
+  return markerOffsets(projected, {
+    nudge: zoom >= NUDGE_MIN_ZOOM,
+    maxOffset: MAX_PIN_OFFSET,
+    bounds,
+  });
+}
 
 function rectsOverlap(
   a: { left: number; top: number; right: number; bottom: number },
@@ -172,7 +187,6 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
 
   const paintLabels = () => {
     const show = map.getZoom() >= LABEL_MIN_ZOOM;
-    const nudge = map.getZoom() >= NUDGE_MIN_ZOOM;
     const width = map.getContainer().clientWidth;
     const height = map.getContainer().clientHeight;
     const pad = width > 2 ? framePadding() : { top: 56, right: 72, bottom: 140, left: 72 };
@@ -180,15 +194,11 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
       const point = map.project([place.lng, place.lat]);
       return { id: place.id, x: point.x, y: point.y };
     });
-    const shifts = markerOffsets(projected, {
-      nudge,
-      maxOffset: MAX_PIN_OFFSET,
-      bounds: {
-        left: pad.left,
-        top: pad.top,
-        right: Math.max(pad.left + 36, width - pad.right),
-        bottom: Math.max(pad.top + 36, height - pad.bottom),
-      },
+    const shifts = layoutShifts(projected, map.getZoom(), {
+      left: pad.left,
+      top: pad.top,
+      right: Math.max(pad.left + 36, width - pad.right),
+      bottom: Math.max(pad.top + 36, height - pad.bottom),
     });
     const groups = overlappingGroups(projected, shifts, PIN_HIT);
     const grouped = new Set(groups.flatMap((group) => group.memberIds));

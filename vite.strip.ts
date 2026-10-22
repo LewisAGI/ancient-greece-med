@@ -18,8 +18,29 @@ export function isPackFile(id: string, name: 'content.json' | 'sources.json'): b
   return file === `data/${name}` || file.endsWith(`/data/${name}`);
 }
 
-export function assertPublished(value: unknown): unknown {
+const excludedEntryIds = new Set<string>(EXCLUDED_IDS);
+
+/** Pack files have no `include: false`. Drop the held-back ids here, in the build plugin. */
+export function withoutHeldBack(value: unknown): unknown {
   const published = publishContent(value);
+  if (typeof published !== 'object' || published === null || Array.isArray(published)) return published;
+  const output: Record<string, unknown> = {};
+  Object.entries(published as Record<string, unknown>).forEach(([key, section]) => {
+    if (!Array.isArray(section)) {
+      output[key] = section;
+      return;
+    }
+    output[key] = section.filter((entry) => {
+      if (typeof entry !== 'object' || entry === null) return false;
+      const id = (entry as { id?: unknown }).id;
+      return typeof id !== 'string' || !excludedEntryIds.has(id);
+    });
+  });
+  return output;
+}
+
+export function assertPublished(value: unknown): unknown {
+  const published = withoutHeldBack(value);
   const serialized = JSON.stringify(published);
   EXCLUDED_PHRASES.forEach((phrase) => {
     if (serialized.includes(phrase)) {
@@ -35,7 +56,7 @@ export function assertPublished(value: unknown): unknown {
 }
 
 export function citedSourceIds(content: unknown): Set<string> {
-  const published = publishContent(content) as Record<string, unknown>;
+  const published = withoutHeldBack(content) as Record<string, unknown>;
   const ids = new Set<string>();
   Object.values(published).forEach((section) => {
     if (!Array.isArray(section)) return;
@@ -51,13 +72,25 @@ export function citedSourceIds(content: unknown): Set<string> {
   return ids;
 }
 
+/** Drop a trailing excluded place name so a cited reference can stay in the bundle. */
+export function publishedSourceTitle(title: string): string {
+  let next = title;
+  EXCLUDED_PLACE_NAMES.forEach((name) => {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    next = next.replace(new RegExp(`\\s*[:\\-–—]\\s*${escaped}\\b`, 'gu'), '');
+  });
+  return next.replace(/[ \t]{2,}/g, ' ').trim();
+}
+
 /** Drop source records that no published entry cites. */
 export function publishSources(sources: unknown, cited: Set<string>): unknown {
   if (!Array.isArray(sources)) throw new Error('sources must be an array');
-  return sources.filter((source) => {
-    if (typeof source !== 'object' || source === null) return false;
-    const id = (source as { id?: unknown }).id;
-    return typeof id === 'string' && cited.has(id);
+  return sources.flatMap((source) => {
+    if (typeof source !== 'object' || source === null) return [];
+    const record = source as { id?: unknown; title?: unknown };
+    if (typeof record.id !== 'string' || !cited.has(record.id)) return [];
+    if (typeof record.title !== 'string') return [source];
+    return [{ ...record, title: publishedSourceTitle(record.title) }];
   });
 }
 

@@ -1,6 +1,7 @@
 /**
- * Drop entries flagged `include: false`. The flag remains in the source JSON on disk.
- * Phrase checks live in the Vite plugin so those strings are not part of the client bundle.
+ * Drop entries flagged `include: false`. The flag stays in the source JSON when
+ * a pack has one. Held-back ids are removed in the Vite plugin so the client
+ * bundle does not embed those id strings.
  */
 export function publishContent(value: unknown): unknown {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {

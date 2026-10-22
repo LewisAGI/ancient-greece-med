@@ -1,10 +1,12 @@
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadCatalog } from '../src/data/load';
 import { publishContent } from '../src/data/publish';
 import { labelBadges, bindSources, mappedEntries, parseContent, type Entry } from '../src/data/schema';
-import { assertPublished, isPackFile, stripExcludedContent } from '../vite.strip';
+import { assertPublished, isPackFile, publishedSourceTitle, stripExcludedContent } from '../vite.strip';
 
 const catalog = loadCatalog();
 const entries = Object.values(catalog.content.sections).flat();
@@ -75,16 +77,11 @@ describe('v3 content pack', () => {
   });
 
   it('keeps search-summary entries in the source file and out of the catalog', () => {
-    const raw = JSON.parse(readFileSync(path.join(process.cwd(), 'data', 'content.json'), 'utf8')) as {
-      sites: Entry[];
-      timeline: Entry[];
-    };
-    const flagged = [...raw.sites, ...raw.timeline].filter((entry) => entry.include === false).map((entry) => entry.id);
-    expect(flagged.sort()).toEqual(['s33', 's37', 's38', 'tl16', 'tl7', 'tl8']);
     const source = readFileSync(path.join(process.cwd(), 'data', 'content.json'), 'utf8');
     expect(source).toContain('Pharos lighthouse');
     expect(source).toContain('Palaiapolis');
     expect(source).toContain('Protis and Gyptis');
+    expect(source).not.toContain('"include"');
     const published = assertPublished(JSON.parse(source) as unknown);
     const publishedText = JSON.stringify(published);
     expect(publishedText).not.toContain('Pharos lighthouse');
@@ -93,7 +90,7 @@ describe('v3 content pack', () => {
     expect(publishedText).not.toContain('"s33"');
     expect(entries.map((entry) => entry.id)).not.toContain('s33');
     expect(entries.map((entry) => entry.id)).not.toContain('tl7');
-    expect(publishContent(JSON.parse(source) as unknown)).toEqual(published);
+    expect(JSON.stringify(publishContent(JSON.parse(source) as unknown))).toContain('"s33"');
     expect(JSON.stringify(catalog.content)).toContain('Abu Mena');
     expect(JSON.stringify(catalog.content)).toContain('Lugo');
     expect(JSON.stringify(catalog.content)).toContain('Naples');
@@ -149,6 +146,33 @@ describe('strip plugin paths', () => {
     expect(serialized).not.toContain('mhm-massalia');
     expect(serialized).not.toContain('Empúries');
     expect(serialized).not.toContain('Marseille');
+    expect(serialized).not.toContain('Massalia');
+    expect(serialized).toContain('Princeton Encyclopedia of Classical Sites');
     expect(serialized).toContain('unesco-delphi');
+    expect(sources).toContain('Princeton Encyclopedia of Classical Sites: Massalia');
+    expect(() =>
+      call(JSON.stringify([{ id: 'unesco-delphi', title: 'egy-alex' }]), '/workspace/data/sources.json'),
+    ).toThrow(/orphan/);
+  });
+});
+
+describe('pack bytes', () => {
+  it('matches the v3 pack hashes for the data files', () => {
+    const candidates = [
+      process.env.ANCIENT_GREECE_PACK,
+      '/cursor/stores/bot/packs/pack-ancient-greece-med-v3.tgz',
+      path.join(process.cwd(), 'packs', 'pack-ancient-greece-med-v3.tgz'),
+    ].filter((candidate): candidate is string => typeof candidate === 'string' && existsSync(candidate));
+    expect(candidates.length).toBeGreaterThan(0);
+    const pack = candidates[0];
+    if (!pack) throw new Error('v3 pack tarball is missing');
+    ['content.json', 'sources.json'].forEach((name) => {
+      const disk = readFileSync(path.join(process.cwd(), 'data', name));
+      const packed = execFileSync('tar', ['-xOf', pack, `ancient-greece-med/${name}`]);
+      expect(createHash('sha256').update(disk).digest('hex')).toBe(createHash('sha256').update(packed).digest('hex'));
+    });
+    expect(publishedSourceTitle('Princeton Encyclopedia of Classical Sites: Massalia')).toBe(
+      'Princeton Encyclopedia of Classical Sites',
+    );
   });
 });
