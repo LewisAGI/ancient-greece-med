@@ -1,0 +1,426 @@
+[
+ {
+  "id": "met-chron",
+  "title": "Ancient Greece, 1000 B.C.-1 A.D. (Heilbrunn Timeline)",
+  "author_org": "The Metropolitan Museum of Art",
+  "url": "https://www.metmuseum.org/toah/ht/04/eusb",
+  "date_accessed": "2026-10-22",
+  "quality": "Major museum"
+ },
+ {
+  "id": "met-class",
+  "title": "The Art of Classical Greece (ca. 480-323 B.C.)",
+  "author_org": "The Metropolitan Museum of Art",
+  "url": "https://www.metmuseum.org/essays/the-art-of-classical-greece-ca-480-323-b-c",
+  "date_accessed": "2026-10-22",
+  "quality": "Major museum"
+ },
+ {
+  "id": "met-hell",
+  "title": "Art of the Hellenistic Age",
+  "author_org": "The Metropolitan Museum of Art",
+  "url": "https://www.metmuseum.org/toah/hd/haht/hd_haht.htm",
+  "date_accessed": "2026-10-22",
+  "quality": "Major museum"
+ },
+ {
+  "id": "pyrgos",
+  "title": "Timeline of Greek History and Art",
+  "author_org": "Pyrgos Archaeological Museum",
+  "url": "https://pyrgosmuseum.ilia-olympia.org/en/timeline-of-greek-history-and-art/",
+  "date_accessed": "2026-10-22",
+  "quality": "Museum; slightly different boundaries"
+ },
+ {
+  "id": "unesco-acropolis",
+  "title": "Acropolis, Athens",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/404/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-delphi",
+  "title": "Archaeological Site of Delphi",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/393/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-olympia",
+  "title": "Archaeological Site of Olympia",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/517/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-delos",
+  "title": "Delos",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/530/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-mycenae",
+  "title": "Archaeological Sites of Mycenae and Tiryns",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/941/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-minoan",
+  "title": "Minoan Palatial Centres",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/1733/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-epidaurus",
+  "title": "Sanctuary of Asklepios at Epidaurus",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/491/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "pg-hesiod",
+  "title": "Hesiod, the Homeric Hymns, and Homerica (tr. H.G. Evelyn-White, 1914)",
+  "author_org": "Project Gutenberg #348",
+  "url": "https://www.gutenberg.org/ebooks/348",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; text grep-verified"
+ },
+ {
+  "id": "pg-iliad",
+  "title": "The Iliad (tr. Samuel Butler)",
+  "author_org": "Project Gutenberg #2199",
+  "url": "https://www.gutenberg.org/ebooks/2199",
+  "date_accessed": "2026-10-22",
+  "quality": "Public domain; grep-verified"
+ },
+ {
+  "id": "pg-odyssey",
+  "title": "The Odyssey (tr. Samuel Butler)",
+  "author_org": "Project Gutenberg #1727",
+  "url": "https://www.gutenberg.org/ebooks/1727",
+  "date_accessed": "2026-10-22",
+  "quality": "Public domain; grep-verified"
+ },
+ {
+  "id": "theoi-paus2",
+  "title": "Pausanias, Description of Greece 2.1-14 (tr. W.H.S. Jones, 1918)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias2A.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "unesco-troy",
+  "title": "Archaeological Site of Troy",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/849/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-paestum",
+  "title": "Cilento and Vallo di Diano National Park with the Archeological Sites of Paestum and Velia, and the Certosa di Padula",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/842/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-syracuse",
+  "title": "Syracuse and the Rocky Necropolis of Pantalica",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/1200/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-malta",
+  "title": "Megalithic Temples of Malta",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/132/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-carthage",
+  "title": "Archaeological Site of Carthage",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/37/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-ephesus",
+  "title": "Ephesus",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/1018/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-rhodes",
+  "title": "Medieval City of Rhodes",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/493/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-aigai",
+  "title": "Archaeological Site of Aigai (modern name Vergina)",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/780/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-bassae",
+  "title": "Temple of Apollo Epicurius at Bassae",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/392/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-samos",
+  "title": "Pythagoreion and Heraion of Samos",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/595/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-philippi",
+  "title": "Archaeological Site of Philippi",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/1517/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-agrigento",
+  "title": "Archaeological Area of Agrigento",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/831/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-pompeii",
+  "title": "Archaeological Areas of Pompei, Herculaneum and Torre Annunziata",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/829/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-cyrene",
+  "title": "Archaeological Site of Cyrene",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/190/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-leptis",
+  "title": "Archaeological Site of Leptis Magna",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/183/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-byblos",
+  "title": "Byblos",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/295/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-paphos",
+  "title": "Paphos",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/79/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-butrint",
+  "title": "Butrint",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/570/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-hierapolis",
+  "title": "Hierapolis-Pamukkale",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/485/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-xanthos",
+  "title": "Xanthos-Letoon",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/484/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-pergamon",
+  "title": "Pergamon and its Multi-Layered Cultural Landscape",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/1457/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "theoi-paus10",
+  "title": "Pausanias 10.1-16 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias10A.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "theoi-paus5",
+  "title": "Pausanias 5.1-15 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias5A.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "theoi-paus1",
+  "title": "Pausanias 1.17-29 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias1B.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "perseus-il2",
+  "title": "Iliad 2 (Butler tr.), Perseus cards 2.280-319 and 2.520-559",
+  "author_org": "Perseus Digital Library",
+  "url": "http://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0217%3Abook%3D2%3Acard%3D301",
+  "date_accessed": "2026-10-22",
+  "quality": "Line-referenced public-domain translation"
+ },
+ {
+  "id": "mhm-massalia",
+  "title": "La fondation de Marseille n'est pas une légende",
+  "author_org": "Musée d'Histoire de Marseille",
+  "url": "https://musee-histoire.marseille.fr/node/2846",
+  "date_accessed": "2026-10-22",
+  "quality": "City museum; via search summary"
+ },
+ {
+  "id": "pecs-massalia",
+  "title": "Princeton Encyclopedia of Classical Sites: Massalia",
+  "author_org": "Perseus Digital Library",
+  "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.04.0006%3Aentry%3Dmassalia",
+  "date_accessed": "2026-10-22",
+  "quality": "Scholarly reference"
+ },
+ {
+  "id": "mac-empuries",
+  "title": "The Greek colonisers (Empúries)",
+  "author_org": "Museu d'Arqueologia de Catalunya / Generalitat",
+  "url": "https://visitmuseum.gencat.cat/en/museum/museu-d-arqueologia-de-catalunya-empuries/tour/els-colonitzadors-grecs",
+  "date_accessed": "2026-10-22",
+  "quality": "Museum; via search summary"
+ },
+ {
+  "id": "egy-alex",
+  "title": "Alexandria",
+  "author_org": "Egypt Ministry of Tourism and Antiquities",
+  "url": "https://egymonuments.gov.eg/en/collections/alexandria/",
+  "date_accessed": "2026-10-22",
+  "quality": "Government; via search summary"
+ },
+ {
+  "id": "ucl-alex",
+  "title": "Alexandria: the library",
+  "author_org": "UCL Digital Egypt",
+  "url": "https://www.ucl.ac.uk/museums-static/digitalegypt/writing/library/alexandria.html",
+  "date_accessed": "2026-10-22",
+  "quality": "University museum; via search summary"
+ },
+ {
+  "id": "unesco-memphis",
+  "title": "Memphis and its Necropolis – the Pyramid Fields from Giza to Dahshur",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/86/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-thebes-eg",
+  "title": "Ancient Thebes with its Necropolis",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/87/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-abumena",
+  "title": "Abu Mena",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/90/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-nubia",
+  "title": "Nubian Monuments from Abu Simbel to Philae",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/88/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-tarraco",
+  "title": "Archaeological Ensemble of Tarraco",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/875/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-merida",
+  "title": "Archaeological Ensemble of Mérida",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/664/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-lugo",
+  "title": "Roman Walls of Lugo",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/987/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-naples",
+  "title": "Historic Centre of Naples",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/726/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ }
+]
