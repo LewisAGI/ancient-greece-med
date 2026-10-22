@@ -16,7 +16,11 @@ export function placeSheet(sheet: HTMLElement): void {
   sheet.classList.toggle('is-side', side);
   if (side) {
     clearSheetChrome();
-    const bottomEdge = Math.round((timeRect?.top ?? window.innerHeight - 112) - gap);
+    const tools = visible('.key-wrap');
+    const toolCeiling = tools && tools.width > tools.height + 8 ? tools.top : null;
+    const timeCeiling = timeRect?.top ?? window.innerHeight - 112;
+    const ceiling = toolCeiling == null ? timeCeiling : Math.min(toolCeiling, timeCeiling);
+    const bottomEdge = Math.round(ceiling - gap);
     const width = Math.min(360, Math.floor(window.innerWidth * 0.42));
     const height = Math.max(140, bottomEdge - top);
     sheet.style.left = `${margin}px`;

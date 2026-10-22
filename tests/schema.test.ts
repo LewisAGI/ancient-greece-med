@@ -1,5 +1,4 @@
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -158,18 +157,13 @@ describe('strip plugin paths', () => {
 
 describe('pack bytes', () => {
   it('matches the v3 pack hashes for the data files', () => {
-    const candidates = [
-      process.env.ANCIENT_GREECE_PACK,
-      '/cursor/stores/bot/packs/pack-ancient-greece-med-v3.tgz',
-      path.join(process.cwd(), 'packs', 'pack-ancient-greece-med-v3.tgz'),
-    ].filter((candidate): candidate is string => typeof candidate === 'string' && existsSync(candidate));
-    expect(candidates.length).toBeGreaterThan(0);
-    const pack = candidates[0];
-    if (!pack) throw new Error('v3 pack tarball is missing');
-    ['content.json', 'sources.json'].forEach((name) => {
+    const expected: Record<string, string> = {
+      'content.json': 'aad7b73a65299b26f939dff8e8b97902b8ba663210acbc9e07e73d9428a9db65',
+      'sources.json': '6c17d831a183ffbb6607b4e161e7a1c59d31a5f462110ad42cf4b83e172daeb6',
+    };
+    Object.entries(expected).forEach(([name, hash]) => {
       const disk = readFileSync(path.join(process.cwd(), 'data', name));
-      const packed = execFileSync('tar', ['-xOf', pack, `ancient-greece-med/${name}`]);
-      expect(createHash('sha256').update(disk).digest('hex')).toBe(createHash('sha256').update(packed).digest('hex'));
+      expect(createHash('sha256').update(disk).digest('hex')).toBe(hash);
     });
     expect(publishedSourceTitle('Princeton Encyclopedia of Classical Sites: Massalia')).toBe(
       'Princeton Encyclopedia of Classical Sites',

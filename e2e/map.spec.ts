@@ -258,6 +258,9 @@ test('timeline, search, glossary, compare, and story pages', async ({ page }) =>
   const bassaeText = await bassae.innerText();
   expect(bassaeText).not.toMatch(/\bBC\./);
   await page.locator('.sheet-close, .maplibregl-popup-close-button').click();
+  await expect(page.locator('.event-sheet, .maplibregl-popup')).toHaveCount(0);
+  await expect(page.locator('#search-panel')).toBeHidden();
+  await expect.poll(async () => page.evaluate(() => window.__greece.map.isMoving())).toBe(false);
 
   await page.getByRole('button', { name: 'Filter', exact: true }).click();
   await page.getByRole('button', { name: 'West', exact: true }).click();

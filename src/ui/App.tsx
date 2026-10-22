@@ -204,13 +204,20 @@ export function App() {
     setPlaybackOpen(false);
   };
 
+  const releaseFocus = () => {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) active.blur();
+  };
+
   const openSite = (id: string) => {
+    releaseFocus();
     closePopouts();
     go({ kind: 'site', id });
   };
 
   const openEntry = (entry: Entry) => {
     const section = sectionOf(catalog.content, entry.id);
+    releaseFocus();
     closePopouts();
     if (section === 'myths_places') {
       go({ kind: 'story', id: entry.id });
@@ -420,7 +427,11 @@ export function App() {
         bounds={bounds}
         sheetMode={sheetMode}
         map={mapReady ? (globeRef.current?.map ?? null) : null}
-        onClose={() => go({ kind: 'map' })}
+        onClose={() => {
+          releaseFocus();
+          globeRef.current?.map.stop();
+          go({ kind: 'map' });
+        }}
         onOpen={openEntry}
         onTimeline={openTimeline}
         onCompare={(slot, id) => {
