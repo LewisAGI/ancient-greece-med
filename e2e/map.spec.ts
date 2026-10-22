@@ -51,12 +51,65 @@ test('globe, sourced pins, and icon labels', async ({ page }) => {
   await expect(page.locator('#map canvas')).toBeVisible();
   await expect(page.locator('#app')).toHaveAttribute('data-projection', 'globe');
   await expect(page.locator('.maplibregl-ctrl-attrib')).toContainText('NASA Blue Marble');
-  await expect(page.locator('.pin')).toHaveCount(15);
+  await expect(page.locator('.pin')).toHaveCount(17);
   await expect(page.locator('.pin[data-place="s8"]')).toHaveCount(1);
+  await expect(page.locator('.pin[data-place="s31"]')).toHaveCount(1);
+  await expect(page.locator('.pin[data-place="s36"]')).toHaveCount(1);
   await expect(page.locator('.pin[data-place="s14"]')).toHaveCount(0);
+  await expect(page.locator('.pin[data-place="s33"]')).toHaveCount(0);
+  const covered = await page.evaluate(() => {
+    const time = document.querySelector('.time')?.getBoundingClientRect();
+    const tools = document.querySelector('.key-wrap')?.getBoundingClientRect();
+    const height = window.innerHeight;
+    const width = window.innerWidth;
+    return [...document.querySelectorAll('.pin')]
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        const underTime = Boolean(time) && rect.bottom > time!.top + 1;
+        const underTools = Boolean(
+          tools &&
+            rect.left < tools.right - 2 &&
+            rect.right > tools.left + 2 &&
+            rect.top < tools.bottom - 2 &&
+            rect.bottom > tools.top + 2,
+        );
+        const offscreen = rect.bottom < 0 || rect.top > height || rect.right < 0 || rect.left > width;
+        return underTime || underTools || offscreen;
+      })
+      .map((element) => element.getAttribute('data-place'));
+  });
+  expect(covered).toEqual([]);
+  const blocked = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('.pin')].flatMap((element) => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      if (hit === element || (hit != null && element.contains(hit))) return [];
+      return [element.dataset.place ?? 'pin'];
+    }),
+  );
+  expect(blocked).toEqual([]);
   await expect(page.locator('body')).not.toContainText('Example data');
+  await expect(page.locator('body')).not.toContainText('Pharos lighthouse');
+  await expect(page.locator('body')).not.toContainText('Palaiapolis');
+  await expect(page.locator('body')).not.toContainText('Protis and Gyptis');
   await expectNoHorizontalScroll(page);
-  for (const name of ['Play', 'Zoom in', 'Zoom out', 'Places', 'Gods', 'Readings', 'Knowledge', 'Sources', 'Previous year', 'Next year', 'Playback']) {
+  for (const name of [
+    'Play',
+    'Zoom in',
+    'Zoom out',
+    'Places',
+    'Gods',
+    'Search',
+    'Filter',
+    'Readings',
+    'Timeline',
+    'Knowledge',
+    'Index',
+    'Sources',
+    'Previous year',
+    'Next year',
+    'Playback',
+  ]) {
     const button = page.getByRole('button', { name, exact: true });
     await expect(button).toHaveAttribute('aria-label', name);
     await expect(button).toHaveAttribute('title', name);
@@ -117,6 +170,9 @@ test('myth card, outside-Greece pin, unpinned site, readings, and sources', asyn
   await page.getByRole('button', { name: 'Knowledge', exact: true }).click();
   const knowledge = page.locator('.event-sheet');
   await expect(knowledge.locator('[data-entry="s14"]')).toContainText('Carthage');
+  await expect(knowledge).not.toContainText('Pharos lighthouse');
+  await expect(knowledge.locator('[data-entry="pe1"]')).toHaveCount(0);
+  await expect(knowledge.locator('[data-entry="tl7"]')).toHaveCount(0);
   await knowledge.locator('[data-entry="s14"]').click();
   await expect(page.locator('.event-sheet')).toContainText('Punic metropolis');
   await expect(page.locator('.pin[data-place="s14"]')).toHaveCount(0);
@@ -131,10 +187,104 @@ test('myth card, outside-Greece pin, unpinned site, readings, and sources', asyn
   await expect(notice).toContainText('Project Gutenberg');
   await expect(notice).toContainText('UNESCO');
   await expect(notice).toContainText('Evelyn-White');
+  await expect(notice).toContainText('Alexandria, Emporion, and Massalia are left out');
 
   await page.getByRole('button', { name: 'Gods', exact: true }).click();
   await page.getByRole('button', { name: 'Apollo', exact: true }).click();
   await expect(page.locator('.event-sheet, .maplibregl-popup')).toContainText('birthplace of Apollo');
+});
+
+test('timeline, search, glossary, compare, and story pages', async ({ page }) => {
+  const before = await page.locator('#app').getAttribute('data-year');
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await expect(page.locator('[data-entry="tl1"]')).toHaveAttribute('data-in-range', 'false');
+  await expect(page.locator('[data-entry="tl10"]')).toHaveAttribute('data-in-range', 'true');
+  await page.locator('[data-entry="tl1"]').click();
+  await expect(page.locator('#app')).toHaveAttribute('data-year', before ?? '');
+  await expect(page.locator('.event-sheet')).toContainText('Minoan');
+  await page.locator('.sheet-close').click();
+
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await page.locator('[data-entry="tl10"]').click();
+  await expect(page.locator('#app')).toHaveAttribute('data-year', '-510');
+  await expect(page.locator('.event-sheet, .maplibregl-popup')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await page.locator('#search-input').fill('Abu Mena');
+  await page.locator('#search-panel [data-entry="s31"]').click();
+  const card = page.locator('.event-sheet, .maplibregl-popup');
+  await expect(card).toContainText('Abu Mena');
+  await page.locator('.sheet-close, .maplibregl-popup-close-button').click();
+
+  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  await page.getByRole('button', { name: 'West', exact: true }).click();
+  await expect(page.locator('.pin[data-place="s36"]')).toHaveCount(1);
+  await expect(page.locator('.pin[data-place="s1"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Filter', exact: true }).click();
+  await page.getByRole('button', { name: 'All places', exact: true }).click();
+  await expect(page.locator('.pin')).toHaveCount(17);
+
+  await page.getByRole('button', { name: 'Index', exact: true }).click();
+  await page.getByRole('button', { name: 'Glossary', exact: true }).click();
+  await expect(page.locator('.event-sheet')).toContainText('Delphi');
+  await expect(page.locator('.event-sheet')).not.toContainText('Example data');
+  await page.locator('.sheet-close').click();
+
+  await page.getByRole('button', { name: 'Index', exact: true }).click();
+  await page.getByRole('button', { name: 'People', exact: true }).click();
+  await expect(page.locator('[data-entry="pe1"]')).toContainText('Homer');
+  await page.locator('.sheet-close').click();
+
+  await page.getByRole('button', { name: 'Index', exact: true }).click();
+  await page.getByRole('button', { name: 'Further reading', exact: true }).click();
+  await expect(page.locator('[data-entry="fr5"]')).toContainText('Princeton Encyclopedia');
+  await page.locator('.sheet-close').click();
+
+  await page.getByRole('button', { name: 'Index', exact: true }).click();
+  await page.getByRole('button', { name: 'Compare', exact: true }).click();
+  await page.locator('#compare-input').fill('Archaic');
+  await page.locator('#compare-panel [data-entry="per2"]').click();
+  await page.getByRole('button', { name: 'Second', exact: true }).click();
+  await page.locator('#compare-input').fill('Classical');
+  await page.locator('#compare-panel [data-entry="per3"]').click();
+  await expect(page.locator('#compare-panel')).toContainText('480 BCE');
+  await page.locator('.sheet-close').click();
+
+  await page.goto('/#/story/m27');
+  await page.locator('#app[data-ready="true"]').waitFor();
+  const story = page.locator('.event-sheet, .maplibregl-popup');
+  await expect(story).toContainText('Castalia');
+  await expect(story).toContainText('Paus. 10.8.9');
+  await expect(story.locator('.badge[data-label="evidence"]').first()).toHaveText('Evidence');
+  await story.locator('[data-link="s2"]').click();
+  await expect(page.locator('.event-sheet, .maplibregl-popup')).toContainText('oracle of the Pythia');
+
+  await page.goto('/#/story/m10');
+  await page.locator('#app[data-ready="true"]').waitFor();
+  await expect(page.locator('.badge[data-label="inference"]').first()).toHaveText('Inference');
+  await expect(page.locator('.badge[data-label="evidence"]').first()).toHaveText('Evidence');
+});
+
+test('the published bundle omits excluded entry text', async ({ page }) => {
+  const html = await (await page.request.get('/')).text();
+  const seen = new Set<string>();
+  const queue = [...html.matchAll(/\/assets\/[A-Za-z0-9._-]+/g)].map((match) => match[0]);
+  expect(queue.length).toBeGreaterThan(0);
+  while (queue.length > 0) {
+    const src = queue.pop();
+    if (!src || seen.has(src)) continue;
+    seen.add(src);
+    const response = await page.request.get(src);
+    expect(response.ok(), src).toBe(true);
+    const text = await response.text();
+    expect(text, src).not.toContain('Pharos lighthouse');
+    expect(text, src).not.toContain('Palaiapolis');
+    expect(text, src).not.toContain('Protis and Gyptis');
+    if (!src.endsWith('.js')) continue;
+    for (const match of text.matchAll(/\/assets\/[A-Za-z0-9._-]+/g)) {
+      if (!seen.has(match[0])) queue.push(match[0]);
+    }
+  }
 });
 
 async function expectNoHorizontalScroll(page: Page) {

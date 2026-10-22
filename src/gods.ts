@@ -23,6 +23,7 @@ export const GODS: God[] = [
       { entryId: 'm8', relation: 'born' },
       { entryId: 'm2', relation: 'worshipped' },
       { entryId: 'm9', relation: 'worshipped' },
+      { entryId: 'm23', relation: 'worshipped' },
       { entryId: 's26', relation: 'worshipped' },
     ],
   },
@@ -34,7 +35,11 @@ export const GODS: God[] = [
   {
     id: 'athena',
     name: 'Athena',
-    links: [{ entryId: 's1', relation: 'worshipped' }],
+    links: [
+      { entryId: 's1', relation: 'worshipped' },
+      { entryId: 'm36', relation: 'worshipped' },
+      { entryId: 'm37', relation: 'worshipped' },
+    ],
   },
   {
     id: 'zeus',
@@ -42,6 +47,7 @@ export const GODS: God[] = [
     links: [
       { entryId: 'm6', relation: 'born' },
       { entryId: 'm4', relation: 'worshipped' },
+      { entryId: 'm33', relation: 'worshipped' },
     ],
   },
   {

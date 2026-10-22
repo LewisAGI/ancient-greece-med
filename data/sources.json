@@ -286,5 +286,141 @@
   "url": "https://whc.unesco.org/en/list/1457/",
   "date_accessed": "2026-10-22",
   "quality": "Intergovernmental"
+ },
+ {
+  "id": "theoi-paus10",
+  "title": "Pausanias 10.1-16 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias10A.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "theoi-paus5",
+  "title": "Pausanias 5.1-15 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias5A.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "theoi-paus1",
+  "title": "Pausanias 1.17-29 (tr. W.H.S. Jones)",
+  "author_org": "Theoi Classical Texts Library",
+  "url": "https://www.theoi.com/Text/Pausanias1B.html",
+  "date_accessed": "2026-10-22",
+  "quality": "Public-domain translation; read in full"
+ },
+ {
+  "id": "perseus-il2",
+  "title": "Iliad 2 (Butler tr.), Perseus cards 2.280-319 and 2.520-559",
+  "author_org": "Perseus Digital Library",
+  "url": "http://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.01.0217%3Abook%3D2%3Acard%3D301",
+  "date_accessed": "2026-10-22",
+  "quality": "Line-referenced public-domain translation"
+ },
+ {
+  "id": "mhm-massalia",
+  "title": "La fondation de Marseille n'est pas une légende",
+  "author_org": "Musée d'Histoire de Marseille",
+  "url": "https://musee-histoire.marseille.fr/node/2846",
+  "date_accessed": "2026-10-22",
+  "quality": "City museum; via search summary"
+ },
+ {
+  "id": "pecs-massalia",
+  "title": "Princeton Encyclopedia of Classical Sites: Massalia",
+  "author_org": "Perseus Digital Library",
+  "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus%3Atext%3A1999.04.0006%3Aentry%3Dmassalia",
+  "date_accessed": "2026-10-22",
+  "quality": "Scholarly reference"
+ },
+ {
+  "id": "mac-empuries",
+  "title": "The Greek colonisers (Empúries)",
+  "author_org": "Museu d'Arqueologia de Catalunya / Generalitat",
+  "url": "https://visitmuseum.gencat.cat/en/museum/museu-d-arqueologia-de-catalunya-empuries/tour/els-colonitzadors-grecs",
+  "date_accessed": "2026-10-22",
+  "quality": "Museum; via search summary"
+ },
+ {
+  "id": "egy-alex",
+  "title": "Alexandria",
+  "author_org": "Egypt Ministry of Tourism and Antiquities",
+  "url": "https://egymonuments.gov.eg/en/collections/alexandria/",
+  "date_accessed": "2026-10-22",
+  "quality": "Government; via search summary"
+ },
+ {
+  "id": "ucl-alex",
+  "title": "Alexandria: the library",
+  "author_org": "UCL Digital Egypt",
+  "url": "https://www.ucl.ac.uk/museums-static/digitalegypt/writing/library/alexandria.html",
+  "date_accessed": "2026-10-22",
+  "quality": "University museum; via search summary"
+ },
+ {
+  "id": "unesco-memphis",
+  "title": "Memphis and its Necropolis – the Pyramid Fields from Giza to Dahshur",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/86/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-thebes-eg",
+  "title": "Ancient Thebes with its Necropolis",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/87/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-abumena",
+  "title": "Abu Mena",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/90/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-nubia",
+  "title": "Nubian Monuments from Abu Simbel to Philae",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/88/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-tarraco",
+  "title": "Archaeological Ensemble of Tarraco",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/875/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-merida",
+  "title": "Archaeological Ensemble of Mérida",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/664/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-lugo",
+  "title": "Roman Walls of Lugo",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/987/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
+ },
+ {
+  "id": "unesco-naples",
+  "title": "Historic Centre of Naples",
+  "author_org": "UNESCO World Heritage Centre",
+  "url": "https://whc.unesco.org/en/list/726/",
+  "date_accessed": "2026-10-22",
+  "quality": "Intergovernmental"
  }
 ]

@@ -4,7 +4,7 @@ import { GODS } from '../src/gods';
 import { entryById } from '../src/data/load';
 import { entryCredits, readingEntries, translatorCredit } from '../src/reading';
 import { formatYear } from '../src/years';
-import { LABEL_MIN_ZOOM, visibleLabelIds, type LabelBox } from '../src/labels';
+import { LABEL_MIN_ZOOM, markerOffsets, visibleLabelIds, type LabelBox } from '../src/labels';
 
 describe('formatYear', () => {
   it('prints BCE and CE and has no year 0', () => {
@@ -57,5 +57,53 @@ describe('visibleLabelIds', () => {
 
   it('keeps the threshold above a whole-earth view', () => {
     expect(LABEL_MIN_ZOOM).toBeGreaterThan(3);
+  });
+});
+
+describe('markerOffsets', () => {
+  it('leaves pins alone when their hit targets already clear each other', () => {
+    const offsets = markerOffsets([
+      { id: 'a', x: 0, y: 0 },
+      { id: 'b', x: 80, y: 0 },
+    ]);
+    expect(offsets.get('a')).toEqual({ dx: 0, dy: 0 });
+    expect(offsets.get('b')).toEqual({ dx: 0, dy: 0 });
+  });
+
+  it('nudges a pin that covers an earlier center and stays inside the frame', () => {
+    const points = [
+      { id: 'north', x: 120, y: 40 },
+      { id: 'south', x: 124, y: 48 },
+    ];
+    const bounds = { left: 0, top: 0, right: 240, bottom: 200 };
+    const offsets = markerOffsets(points, { bounds });
+    expect(offsets.get('north')).toEqual({ dx: 0, dy: 0 });
+    const south = offsets.get('south');
+    expect(south).toBeTruthy();
+    const bx = 124 + (south?.dx ?? 0);
+    const by = 48 + (south?.dy ?? 0);
+    expect(Math.abs(bx - 120) >= 34 || Math.abs(by - 40) >= 34).toBe(true);
+    expect(bx).toBeGreaterThanOrEqual(16);
+    expect(by).toBeGreaterThanOrEqual(16);
+    expect(bx).toBeLessThanOrEqual(224);
+    expect(by).toBeLessThanOrEqual(184);
+  });
+
+  it('separates a stack of pins that share one screen point', () => {
+    const points = Array.from({ length: 8 }, (_, index) => ({
+      id: `p${index}`,
+      x: 160,
+      y: 160,
+    }));
+    const offsets = markerOffsets(points, { bounds: { left: 0, top: 0, right: 360, bottom: 360 } });
+    const spots = points.map((point) => {
+      const shift = offsets.get(point.id) ?? { dx: 0, dy: 0 };
+      return { x: point.x + shift.dx, y: point.y + shift.dy };
+    });
+    spots.forEach((spot, index) => {
+      spots.slice(index + 1).forEach((other) => {
+        expect(Math.abs(spot.x - other.x) >= 18 || Math.abs(spot.y - other.y) >= 18).toBe(true);
+      });
+    });
   });
 });

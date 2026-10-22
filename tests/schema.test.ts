@@ -1,19 +1,24 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadCatalog } from '../src/data/load';
-import { bindSources, mappedEntries, parseContent, type Entry } from '../src/data/schema';
+import { publishContent } from '../src/data/publish';
+import { labelBadges, bindSources, mappedEntries, parseContent, type Entry } from '../src/data/schema';
+import { assertPublished } from '../vite.strip';
 
 const catalog = loadCatalog();
 const entries = Object.values(catalog.content.sections).flat();
 
-describe('v2 content pack', () => {
-  it('loads 56 entries and 36 sources, with every citation resolved', () => {
-    expect(entries).toHaveLength(56);
+describe('v3 content pack', () => {
+  it('loads the published catalog and resolves every citation', () => {
+    expect(entries).toHaveLength(119);
     expect(catalog.content.sections.periods).toHaveLength(6);
-    expect(catalog.content.sections.myths_places).toHaveLength(22);
-    expect(catalog.content.sections.sites).toHaveLength(28);
-    expect(catalog.sources).toHaveLength(36);
+    expect(catalog.content.sections.myths_places).toHaveLength(41);
+    expect(catalog.content.sections.sites).toHaveLength(37);
+    expect(catalog.content.sections.people).toHaveLength(12);
+    expect(catalog.content.sections.timeline).toHaveLength(17);
+    expect(catalog.content.sections.further_reading).toHaveLength(6);
+    expect(catalog.sources).toHaveLength(53);
     const ids = new Set(catalog.sources.map((source) => source.id));
     entries.forEach((entry) => {
       expect(entry.sources.length).toBeGreaterThan(0);
@@ -38,6 +43,8 @@ describe('v2 content pack', () => {
       's24',
       's26',
       's28',
+      's31',
+      's36',
     ]);
     for (const id of ['s6', 's7', 's9', 's10', 's12', 's13', 's14', 's18', 's20', 's21', 's23', 's25', 's27']) {
       const entry = entries.find((item) => item.id === id) as Entry;
@@ -62,6 +69,40 @@ describe('v2 content pack', () => {
     const blob = JSON.stringify(catalog.content);
     expect(blob).not.toMatch(/Example data/);
     expect(entries.some((entry) => entry.id.startsWith('ex-'))).toBe(false);
+  });
+
+  it('keeps search-summary entries in the source file and out of the catalog', () => {
+    const raw = JSON.parse(readFileSync(path.join(process.cwd(), 'data', 'content.json'), 'utf8')) as {
+      sites: Entry[];
+      timeline: Entry[];
+    };
+    const flagged = [...raw.sites, ...raw.timeline].filter((entry) => entry.include === false).map((entry) => entry.id);
+    expect(flagged.sort()).toEqual(['s33', 's37', 's38', 'tl16', 'tl7', 'tl8']);
+    const source = readFileSync(path.join(process.cwd(), 'data', 'content.json'), 'utf8');
+    expect(source).toContain('Pharos lighthouse');
+    expect(source).toContain('Palaiapolis');
+    expect(source).toContain('Protis and Gyptis');
+    const published = assertPublished(JSON.parse(source) as unknown);
+    const publishedText = JSON.stringify(published);
+    expect(publishedText).not.toContain('Pharos lighthouse');
+    expect(publishedText).not.toContain('Palaiapolis');
+    expect(publishedText).not.toContain('Protis and Gyptis');
+    expect(publishedText).not.toContain('"s33"');
+    expect(entries.map((entry) => entry.id)).not.toContain('s33');
+    expect(entries.map((entry) => entry.id)).not.toContain('tl7');
+    expect(publishContent(JSON.parse(source) as unknown)).toEqual(published);
+    expect(JSON.stringify(catalog.content)).toContain('Abu Mena');
+    expect(JSON.stringify(catalog.content)).toContain('Lugo');
+    expect(JSON.stringify(catalog.content)).toContain('Naples');
+  });
+
+  it('turns qualified labels into short badges', () => {
+    expect(labelBadges('evidence')).toEqual(['evidence']);
+    expect(labelBadges('evidence (book) + inference (card adjacency)')).toEqual(['evidence', 'inference']);
+    expect(labelBadges('evidence (book-level only)')).toEqual(['evidence']);
+    expect(labelBadges('evidence (search-summary level)')).toEqual(['evidence', 'abstract-only']);
+    const mycenae = entries.find((entry) => entry.id === 'm10');
+    expect(labelBadges(mycenae?.label ?? '')).toEqual(['evidence', 'inference']);
   });
 
   it('rejects a bad label, a missing source, and an unknown field', () => {

@@ -119,6 +119,99 @@ export function IconLoop() {
   );
 }
 
+export function IconSearch() {
+  return (
+    <Svg>
+      <circle cx="11" cy="11" r="6" {...stroke} />
+      <path d="M15.5 15.5L20 20" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconFilter() {
+  return (
+    <Svg>
+      <path d="M4 6h16M7 12h10M10 18h4" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconTimeline() {
+  return (
+    <Svg>
+      <path d="M6 5v14M6 8h8M6 12h12M6 16h6" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconIndex() {
+  return (
+    <Svg>
+      <path d="M8 5h11M8 12h11M8 19h11" {...stroke} />
+      <path d="M4 5h.01M4 12h.01M4 19h.01" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconPeople() {
+  return (
+    <Svg>
+      <circle cx="12" cy="8" r="3" {...stroke} />
+      <path d="M6 19c1.2-3 3.2-4.5 6-4.5S16.8 16 18 19" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconFurther() {
+  return (
+    <Svg>
+      <path d="M6 5h9l3 3v11H6z" {...stroke} />
+      <path d="M15 5v3h3" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconGlossary() {
+  return (
+    <Svg>
+      <path d="M7 4h10v16H7z" {...stroke} />
+      <path d="M10 8h4M10 12h4" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconCompare() {
+  return (
+    <Svg>
+      <path d="M8 5v14M16 5v14M4 8h8M12 16h8" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconWest() {
+  return (
+    <Svg>
+      <path d="M19 12H6M10 8l-4 4 4 4" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconEast() {
+  return (
+    <Svg>
+      <path d="M5 12h13M14 8l4 4-4 4" {...stroke} />
+    </Svg>
+  );
+}
+
+export function IconSouth() {
+  return (
+    <Svg>
+      <path d="M12 5v13M8 14l4 4 4-4" {...stroke} />
+    </Svg>
+  );
+}
+
 export function IconQuote() {
   return (
     <Svg>

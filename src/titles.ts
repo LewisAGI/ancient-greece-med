@@ -21,5 +21,8 @@ export function sectionHeading(key: string): string {
   if (key === 'myths_places') return 'Myths';
   if (key === 'periods') return 'Periods';
   if (key === 'sites') return 'Sites';
+  if (key === 'people') return 'People';
+  if (key === 'timeline') return 'Timeline';
+  if (key === 'further_reading') return 'Further reading';
   return key.replace(/_/g, ' ');
 }

@@ -13,6 +13,7 @@ export function placeSheet(sheet: HTMLElement): void {
   const top = Math.round((wordmark ? wordmark.bottom : 40) + gap);
   const side = window.innerWidth > window.innerHeight && window.innerHeight <= 800 && window.innerWidth <= 1366;
   sheet.classList.remove('is-covering');
+  sheet.classList.toggle('is-side', side);
   if (side) {
     clearSheetChrome();
     const bottomEdge = Math.round((timeRect?.top ?? window.innerHeight - 112) - gap);
@@ -89,6 +90,74 @@ function raiseZoomAboveSheet(sheet: HTMLElement): void {
   zoomEl.style.transform = 'none';
   zoomEl.style.top = `${Math.round(nextTop)}px`;
   zoomEl.style.bottom = 'auto';
+}
+
+export interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/** Slide a desktop popup so it stays on screen and clear of the zoom, tools, and time bar. */
+export function popupNudge(
+  rect: Box,
+  frame: { width: number; height: number },
+  obstacles: Box[],
+  margin = 12,
+): { dx: number; dy: number } {
+  let left = rect.left;
+  let top = rect.top;
+  let right = rect.right;
+  let bottom = rect.bottom;
+  const width = right - left;
+  const height = bottom - top;
+  let dx = 0;
+  let dy = 0;
+  const apply = (sx: number, sy: number) => {
+    dx += sx;
+    dy += sy;
+    left += sx;
+    right += sx;
+    top += sy;
+    bottom += sy;
+  };
+  const fits = (sx: number, sy: number) => {
+    const nextLeft = left + sx;
+    const nextTop = top + sy;
+    return (
+      nextLeft >= margin - 0.5 &&
+      nextLeft + width <= frame.width - margin + 0.5 &&
+      nextTop >= margin - 0.5 &&
+      nextTop + height <= frame.height - margin + 0.5
+    );
+  };
+  if (right > frame.width - margin) apply(frame.width - margin - right, 0);
+  if (left < margin) apply(margin - left, 0);
+  if (height > frame.height - margin * 2) apply(0, margin - top);
+  else {
+    if (top < margin) apply(0, margin - top);
+    if (bottom > frame.height - margin) apply(0, frame.height - margin - bottom);
+  }
+  for (let pass = 0; pass < 2; pass += 1) {
+    obstacles.forEach((obstacle) => {
+      const overlaps = right > obstacle.left && left < obstacle.right && bottom > obstacle.top && top < obstacle.bottom;
+      if (!overlaps) return;
+      const options = [
+        { sx: -(right - obstacle.left + margin), sy: 0 },
+        { sx: obstacle.right - left + margin, sy: 0 },
+        { sx: 0, sy: -(bottom - obstacle.top + margin) },
+        { sx: 0, sy: obstacle.bottom - top + margin },
+      ]
+        .map((option) => ({ ...option, cost: Math.abs(option.sx) + Math.abs(option.sy) }))
+        .filter((option) => fits(option.sx, option.sy))
+        .sort((a, b) => a.cost - b.cost);
+      const best = options[0];
+      if (!best) return;
+      apply(best.sx, best.sy);
+    });
+  }
+  return { dx, dy };
 }
 
 function visible(selector: string): DOMRect | null {

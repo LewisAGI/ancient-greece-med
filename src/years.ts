@@ -34,6 +34,10 @@ function assertYear(year: number, bounds: YearBounds): void {
   if (year < bounds.first || year > bounds.last) throw new Error('Year is outside the timeline');
 }
 
+export function yearInside(year: number, bounds: YearBounds): boolean {
+  return Number.isInteger(year) && year !== 0 && year >= bounds.first && year <= bounds.last;
+}
+
 export function formatYear(year: number): string {
   if (!Number.isInteger(year) || year === 0) return '';
   const body = String(Math.abs(year));

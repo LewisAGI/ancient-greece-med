@@ -2,10 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { createPortal } from 'react-dom';
 import { Popup, type Map as MapLibreMap } from 'maplibre-gl';
 import type { Entry, SourceRecord } from '../data/schema';
+import { relatedEntries } from '../explore';
 import { entryCredits } from '../reading';
 import { entryTitle } from '../titles';
+import { formatYear } from '../years';
 import { LabelBadge } from './LabelBadge';
-import { clearSheetChrome, placeSheet, prefersSheet } from './sheetLayout';
+import { clearSheetChrome, placeSheet, popupNudge, prefersSheet } from './sheetLayout';
 
 export function usePrefersSheet(): boolean {
   const [sheet, setSheet] = useState(() => prefersSheet());
@@ -21,11 +23,16 @@ export function EntryBody({
   entry,
   sources,
   myths = [],
+  sections,
+  onOpen,
 }: {
   entry: Entry;
   sources: SourceRecord[];
   myths?: Entry[];
+  sections?: Record<string, Entry[]>;
+  onOpen?: (entry: Entry) => void;
 }) {
+  const skip = new Set([entry.id, ...myths.map((myth) => myth.id)]);
   return (
     <div className="sheet-copy" data-entry={entry.id}>
       <h2 className="popup-title">{entryTitle(entry)}</h2>
@@ -33,9 +40,11 @@ export function EntryBody({
         <LabelBadge label={entry.label} />
       </p>
       <p className="popup-summary">{entry.text}</p>
+      {entry.citation ? <p className="citation">{entry.citation}</p> : null}
       <ReadingLines entry={entry} sources={sources} />
       <FactList entry={entry} />
       <SourceList ids={entry.sources} sources={sources} />
+      {sections && onOpen ? <CrossLinks entry={entry} sections={sections} skip={skip} onOpen={onOpen} /> : null}
       {myths.map((myth) => (
         <article key={myth.id} className="myth-card" data-entry={myth.id}>
           <h3 className="popup-title">{entryTitle(myth)}</h3>
@@ -43,13 +52,46 @@ export function EntryBody({
             <LabelBadge label={myth.label} />
           </p>
           <p className="popup-summary">{myth.text}</p>
+          {myth.citation ? <p className="citation">{myth.citation}</p> : null}
           <ReadingLines entry={myth} sources={sources} />
           <FactList entry={myth} />
           <SourceList ids={myth.sources} sources={sources} />
+          {sections && onOpen ? (
+            <CrossLinks entry={myth} sections={sections} skip={new Set([...skip, myth.id])} onOpen={onOpen} />
+          ) : null}
         </article>
       ))}
     </div>
   );
+}
+
+export function CrossLinks({
+  entry,
+  sections,
+  skip,
+  onOpen,
+}: {
+  entry: Entry;
+  sections: Record<string, Entry[]>;
+  skip?: ReadonlySet<string>;
+  onOpen: (entry: Entry) => void;
+}) {
+  const related = relatedEntries(entry, sections, skip);
+  if (related.length === 0) return null;
+  return (
+    <div className="cross-links">
+      {related.map((item) => (
+        <button key={item.id} type="button" className="text-link" data-link={item.id} onClick={() => onOpen(item)}>
+          {linkLabel(item)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function linkLabel(entry: Entry): string {
+  if (!entry.citation) return entryTitle(entry);
+  return `${entryTitle(entry)} · ${entry.citation}`;
 }
 
 export function ReadingLines({ entry, sources }: { entry: Entry; sources: SourceRecord[] }) {
@@ -69,6 +111,7 @@ export function ReadingLines({ entry, sources }: { entry: Entry; sources: Source
 
 function FactList({ entry }: { entry: Entry }) {
   const facts: { label: string; value: string }[] = [];
+  if (entry.year != null) facts.push({ label: 'Year', value: formatYear(entry.year) });
   if (entry.coords?.source_format) facts.push({ label: 'Coordinates', value: entry.coords.source_format });
   if (entry.unesco_year) facts.push({ label: 'UNESCO', value: String(entry.unesco_year) });
   if (entry.uncertainty) facts.push({ label: 'Uncertainty', value: entry.uncertainty });
@@ -114,8 +157,11 @@ export function BottomSheet({ label, onClose, children }: { label: string; onClo
     if (!node) return;
     const place = () => placeSheet(node);
     place();
+    const observer = new ResizeObserver(place);
+    observer.observe(node);
     window.addEventListener('resize', place);
     return () => {
+      observer.disconnect();
       window.removeEventListener('resize', place);
       clearSheetChrome();
     };
@@ -193,25 +239,46 @@ export function DesktopPopup({
     popupRef.current?.setLngLat([lng, lat]);
   }, [lng, lat]);
 
-  useLayoutEffect(() => {
+  const placePopup = () => {
     const element = popupRef.current?.getElement();
     if (!element) return;
     element.style.marginLeft = '0px';
     element.style.marginTop = '0px';
     const rect = element.getBoundingClientRect();
-    const margin = 12;
-    let dx = 0;
-    let dy = 0;
-    if (rect.right > window.innerWidth - margin) dx = window.innerWidth - margin - rect.right;
-    if (rect.left + dx < margin) dx = margin - rect.left;
-    if (rect.height > window.innerHeight - margin * 2) dy = margin - rect.top;
-    else {
-      if (rect.top < margin) dy = margin - rect.top;
-      if (rect.bottom + dy > window.innerHeight - margin) dy = window.innerHeight - margin - rect.bottom;
-    }
-    element.style.marginLeft = `${dx}px`;
-    element.style.marginTop = `${dy}px`;
+    const close = element.querySelector('.maplibregl-popup-close-button')?.getBoundingClientRect();
+    const box = close
+      ? {
+          left: Math.min(rect.left, close.left),
+          top: Math.min(rect.top, close.top),
+          right: Math.max(rect.right, close.right),
+          bottom: Math.max(rect.bottom, close.bottom),
+        }
+      : rect;
+    const obstacles = ['.zoom', '.key-wrap', '.time', '.wordmark'].flatMap((selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return [];
+      const obstacle = node.getBoundingClientRect();
+      if (obstacle.width < 2 || obstacle.height < 2) return [];
+      return [{ left: obstacle.left, top: obstacle.top, right: obstacle.right, bottom: obstacle.bottom }];
+    });
+    const nudge = popupNudge(box, { width: window.innerWidth, height: window.innerHeight }, obstacles);
+    element.style.marginLeft = `${nudge.dx}px`;
+    element.style.marginTop = `${nudge.dy}px`;
+  };
+
+  useLayoutEffect(() => {
+    placePopup();
   });
+
+  useEffect(() => {
+    placePopup();
+    map.on('move', placePopup);
+    map.on('moveend', placePopup);
+    return () => {
+      map.off('move', placePopup);
+      map.off('moveend', placePopup);
+    };
+  }, [map, host]);
 
   if (!host) return null;
   return createPortal(children, host);

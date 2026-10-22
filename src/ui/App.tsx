@@ -1,39 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createHistoryClock } from '../clock';
-import { entryById, loadCatalog } from '../data/load';
+import { loadCatalog, sectionOf } from '../data/load';
 import type { Entry } from '../data/schema';
+import { pinMatches, type PlaceFilter } from '../explore';
 import { GODS } from '../gods';
-import { SOURCES_NOTICE } from '../notice';
 import { initialYear, periodMarks, periodsCovering, spanOf, timelineBounds } from '../periods';
 import { bboxOf, buildPins, overviewBBox, pinForEntry, type Pin } from '../pins';
-import { readingEntries } from '../reading';
-import { entryTitle, sectionHeading } from '../titles';
-import { formatYear } from '../years';
+import { parseHash, sameRoute, writeHash, type Route } from '../routes';
+import { formatYear, yearInside } from '../years';
 import { createGlobe, type GlobeController } from '../globe/createGlobe';
+import { FilterPopout } from './FilterPopout';
 import { GodsPopout } from './GodsPopout';
 import { IconButton } from './IconButton';
-import { IconKnowledge, IconMinus, IconPlus, IconQuote, IconSources } from './icons';
-import { LabelBadge } from './LabelBadge';
+import { IconKnowledge, IconMinus, IconPlus, IconQuote, IconSources, IconTimeline } from './icons';
+import { IndexPopout } from './IndexPopout';
 import { bindLongPress } from './longPress';
+import { SheetHost } from './Panels';
 import { PlacesPopout } from './PlacesPopout';
-import { DesktopPopup, EntryBody, Panel, ReadingLines, SourceList, usePrefersSheet } from './Sheets';
+import { SearchPopout } from './SearchPopout';
+import { usePrefersSheet } from './Sheets';
 import { TimeBar } from './TimeBar';
-
-type SheetState =
-  | { kind: 'site'; id: string }
-  | { kind: 'entry'; id: string }
-  | { kind: 'god'; id: string }
-  | { kind: 'periods' }
-  | { kind: 'knowledge' }
-  | { kind: 'readings' }
-  | { kind: 'sources' }
-  | null;
 
 export function App() {
   const catalog = useMemo(() => loadCatalog(), []);
   const pins = useMemo(() => buildPins(catalog.content.sections), [catalog]);
   const bounds = useMemo(() => timelineBounds(catalog.content.sections.periods ?? []), [catalog]);
-  const readings = useMemo(() => readingEntries(catalog.content.sections), [catalog]);
   const marks = useMemo(() => periodMarks(catalog.content.sections.periods ?? [], bounds), [catalog, bounds]);
   const clockRef = useRef<ReturnType<typeof createHistoryClock> | null>(null);
   if (!clockRef.current) clockRef.current = createHistoryClock(bounds, initialYear(catalog.content.sections.periods ?? [], bounds));
@@ -47,16 +38,44 @@ export function App() {
   const [speed, setSpeed] = useState(clock.speed);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [godsOpen, setGodsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [indexOpen, setIndexOpen] = useState(false);
   const [playbackOpen, setPlaybackOpen] = useState(false);
-  const [mythOnly, setMythOnly] = useState(false);
-  const [sheet, setSheet] = useState<SheetState>(null);
+  const [filter, setFilter] = useState<PlaceFilter>('all');
+  const [route, setRoute] = useState<Route>(() => parseHash(window.location.hash));
+  const [mapReady, setMapReady] = useState(false);
   const sheetMode = usePrefersSheet();
-  const openRef = useRef({ places: false, gods: false, playback: false });
-  openRef.current = { places: placesOpen, gods: godsOpen, playback: playbackOpen };
+  const routeRef = useRef(route);
+  routeRef.current = route;
+  const openRef = useRef({ places: false, gods: false, search: false, filter: false, index: false, playback: false });
+  openRef.current = {
+    places: placesOpen,
+    gods: godsOpen,
+    search: searchOpen,
+    filter: filterOpen,
+    index: indexOpen,
+    playback: playbackOpen,
+  };
 
-  const visiblePins = mythOnly ? pins.filter((pin) => pin.myths.length > 0) : pins;
+  const visiblePins = useMemo(() => pins.filter((pin) => pinMatches(pin, filter)), [pins, filter]);
+
+  const go = (next: Route) => {
+    writeHash(next);
+    setRoute((current) => (sameRoute(current, next) ? current : next));
+  };
 
   useEffect(() => bindLongPress(), []);
+
+  useEffect(() => {
+    const sync = () => setRoute(parseHash(window.location.hash));
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
 
   useEffect(() => {
     const node = mapNode.current;
@@ -69,10 +88,8 @@ export function App() {
       places: pins.map((pin) => ({ id: pin.id, lat: pin.lat, lng: pin.lng, title: pin.title })),
     };
     globe.onPick((hit) => {
-      setPlacesOpen(false);
-      setGodsOpen(false);
-      setPlaybackOpen(false);
-      setSheet(hit ? { kind: 'site', id: hit.id } : null);
+      closePopouts();
+      go(hit ? { kind: 'site', id: hit.id } : { kind: 'map' });
     });
     let settled = false;
     const finish = () => {
@@ -82,15 +99,18 @@ export function App() {
     };
     void globe.ready.then(() => {
       globe.setPlaces(toMapPlaces(pins));
-      globe.flyTo(overviewBBox(pins));
-      globe.map.once('moveend', finish);
-      window.setTimeout(finish, 1500);
+      const pin = focusPin(routeRef.current, pins);
+      void globe.flyTo(pin ? bboxOf([pin], 0.45) : overviewBBox(pins)).finally(finish);
+      window.setTimeout(finish, 2500);
+      setMapReady(true);
     });
     return () => {
       globe.destroy();
       globeRef.current = null;
       delete window.__greece;
     };
+    // The globe is created once. Later route changes fly from the route effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins]);
 
   useEffect(() => {
@@ -98,9 +118,15 @@ export function App() {
   }, [visiblePins]);
 
   useEffect(() => {
-    const ids = highlightFor(sheet, pins);
+    const ids = highlightFor(route, pins);
     globeRef.current?.setHighlight(ids);
-  }, [sheet, pins]);
+    const pin = focusPin(route, pins);
+    if (!pin || !globeRef.current) return;
+    if (route.kind === 'site' || route.kind === 'story' || route.kind === 'god') {
+      const points = route.kind === 'god' ? godPins(route.id, pins) : [pin];
+      if (points.length > 0) globeRef.current.flyTo(bboxOf(points, route.kind === 'god' ? 0.8 : 0.45));
+    }
+  }, [route, pins]);
 
   useEffect(() => {
     return clock.subscribe(() => {
@@ -138,6 +164,9 @@ export function App() {
       if (!element) return;
       if (openRef.current.places && !element.closest('#places-panel, #places-button')) setPlacesOpen(false);
       if (openRef.current.gods && !element.closest('#gods-panel, #gods-button')) setGodsOpen(false);
+      if (openRef.current.search && !element.closest('#search-panel, #search-button')) setSearchOpen(false);
+      if (openRef.current.filter && !element.closest('#filter-panel, #filter-button')) setFilterOpen(false);
+      if (openRef.current.index && !element.closest('#index-panel, #index-button')) setIndexOpen(false);
       if (openRef.current.playback && !element.closest('#playback-popout, #playback-button, #tools-button, #year-button')) {
         setPlaybackOpen(false);
       }
@@ -154,10 +183,8 @@ export function App() {
         clock.pause();
         clock.step(-1);
       } else if (event.key === 'Escape') {
-        setPlacesOpen(false);
-        setGodsOpen(false);
-        setPlaybackOpen(false);
-        setSheet(null);
+        closePopouts();
+        go({ kind: 'map' });
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
@@ -171,30 +198,45 @@ export function App() {
   const closePopouts = () => {
     setPlacesOpen(false);
     setGodsOpen(false);
+    setSearchOpen(false);
+    setFilterOpen(false);
+    setIndexOpen(false);
     setPlaybackOpen(false);
   };
 
   const openSite = (id: string) => {
-    const pin = pins.find((item) => item.id === id);
-    if (!pin) return;
     closePopouts();
-    setSheet({ kind: 'site', id });
-    globeRef.current?.flyTo(bboxOf([pin], 0.45));
+    go({ kind: 'site', id });
   };
 
   const openEntry = (entry: Entry) => {
-    const pin = pinForEntry(pins, entry.id);
+    const section = sectionOf(catalog.content, entry.id);
     closePopouts();
-    if (pin) {
-      setSheet({ kind: 'site', id: pin.id });
-      globeRef.current?.flyTo(bboxOf([pin], 0.45));
+    if (section === 'myths_places') {
+      go({ kind: 'story', id: entry.id });
       return;
     }
-    setSheet({ kind: 'entry', id: entry.id });
+    if (section === 'sites' && pins.some((pin) => pin.id === entry.id)) {
+      go({ kind: 'site', id: entry.id });
+      return;
+    }
+    go({ kind: 'entry', id: entry.id });
+  };
+
+  const openTimeline = (entry: Entry) => {
+    closePopouts();
+    if (entry.year != null && yearInside(entry.year, bounds)) {
+      clock.pause();
+      clock.setYear(entry.year);
+      go({ kind: 'map' });
+      return;
+    }
+    go({ kind: 'entry', id: entry.id });
   };
 
   const activePeriods = periodsCovering(catalog.content.sections.periods ?? [], year);
   const yearLabel = formatYear(year);
+  const shownPlaces = visiblePins;
 
   return (
     <>
@@ -210,63 +252,120 @@ export function App() {
       </div>
       <div className="key-wrap">
         <PlacesPopout
-          pins={pins}
+          pins={shownPlaces}
           open={placesOpen}
-          mythOnly={mythOnly}
           onToggle={() => {
             setGodsOpen(false);
+            setSearchOpen(false);
+            setFilterOpen(false);
+            setIndexOpen(false);
             setPlaybackOpen(false);
             setPlacesOpen((open) => !open);
           }}
-          onToggleMyth={() => setMythOnly((value) => !value)}
           onSelect={openSite}
         />
         <GodsPopout
           open={godsOpen}
-          selectedId={sheet?.kind === 'god' ? sheet.id : null}
+          selectedId={route.kind === 'god' ? route.id : null}
           onToggle={() => {
             setPlacesOpen(false);
+            setSearchOpen(false);
+            setFilterOpen(false);
+            setIndexOpen(false);
             setPlaybackOpen(false);
             setGodsOpen((open) => !open);
           }}
           onSelect={(id) => {
-            const god = GODS.find((item) => item.id === id);
-            if (!god) return;
+            if (!GODS.some((item) => item.id === id)) return;
             closePopouts();
-            setSheet({ kind: 'god', id });
-            const linked = pins.filter((pin) => god.links.some((link) => pinForEntry([pin], link.entryId)));
-            if (linked.length > 0) globeRef.current?.flyTo(bboxOf(linked, 0.8));
+            go({ kind: 'god', id });
+          }}
+        />
+        <SearchPopout
+          open={searchOpen}
+          sections={catalog.content.sections}
+          onToggle={() => {
+            setPlacesOpen(false);
+            setGodsOpen(false);
+            setFilterOpen(false);
+            setIndexOpen(false);
+            setPlaybackOpen(false);
+            setSearchOpen((open) => !open);
+          }}
+          onSelect={openEntry}
+        />
+        <FilterPopout
+          open={filterOpen}
+          filter={filter}
+          onToggle={() => {
+            setPlacesOpen(false);
+            setGodsOpen(false);
+            setSearchOpen(false);
+            setIndexOpen(false);
+            setPlaybackOpen(false);
+            setFilterOpen((open) => !open);
+          }}
+          onSelect={(next) => {
+            setFilter(next);
+            setFilterOpen(false);
           }}
         />
         <IconButton
           id="readings-button"
           label="Readings"
-          expanded={sheet?.kind === 'readings'}
+          expanded={route.kind === 'readings'}
           onClick={() => {
             closePopouts();
-            setSheet((current) => (current?.kind === 'readings' ? null : { kind: 'readings' }));
+            go(route.kind === 'readings' ? { kind: 'map' } : { kind: 'readings' });
           }}
         >
           <IconQuote />
         </IconButton>
         <IconButton
-          id="knowledge-button"
-          label="Knowledge"
-          expanded={sheet?.kind === 'knowledge'}
+          id="timeline-button"
+          label="Timeline"
+          expanded={route.kind === 'timeline'}
           onClick={() => {
             closePopouts();
-            setSheet((current) => (current?.kind === 'knowledge' ? null : { kind: 'knowledge' }));
+            go(route.kind === 'timeline' ? { kind: 'map' } : { kind: 'timeline' });
+          }}
+        >
+          <IconTimeline />
+        </IconButton>
+        <IconButton
+          id="knowledge-button"
+          label="Knowledge"
+          expanded={route.kind === 'knowledge'}
+          onClick={() => {
+            closePopouts();
+            go(route.kind === 'knowledge' ? { kind: 'map' } : { kind: 'knowledge' });
           }}
         >
           <IconKnowledge />
         </IconButton>
+        <IndexPopout
+          open={indexOpen}
+          route={route}
+          onToggle={() => {
+            setPlacesOpen(false);
+            setGodsOpen(false);
+            setSearchOpen(false);
+            setFilterOpen(false);
+            setPlaybackOpen(false);
+            setIndexOpen((open) => !open);
+          }}
+          onOpen={(next) => {
+            closePopouts();
+            go(sameRoute(route, next) ? { kind: 'map' } : next);
+          }}
+        />
         <IconButton
           id="sources-button"
           label="Sources"
-          expanded={sheet?.kind === 'sources'}
+          expanded={route.kind === 'sources'}
           onClick={() => {
             closePopouts();
-            setSheet((current) => (current?.kind === 'sources' ? null : { kind: 'sources' }));
+            go(route.kind === 'sources' ? { kind: 'map' } : { kind: 'sources' });
           }}
         >
           <IconSources />
@@ -302,203 +401,62 @@ export function App() {
         onTogglePlayback={() => {
           setPlacesOpen(false);
           setGodsOpen(false);
+          setSearchOpen(false);
+          setFilterOpen(false);
+          setIndexOpen(false);
           setPlaybackOpen((open) => !open);
         }}
         onOpenYear={() => {
           closePopouts();
-          setSheet({ kind: 'periods' });
+          go({ kind: 'periods' });
         }}
       />
       <SheetHost
-        sheet={sheet}
+        route={route}
         pins={pins}
-        readings={readings}
-        periods={activePeriods}
         sources={catalog.sources}
         sections={catalog.content.sections}
+        periods={activePeriods}
+        bounds={bounds}
         sheetMode={sheetMode}
-        map={globeRef.current?.map ?? null}
-        onClose={() => setSheet(null)}
+        map={mapReady ? (globeRef.current?.map ?? null) : null}
+        onClose={() => go({ kind: 'map' })}
         onOpen={openEntry}
+        onTimeline={openTimeline}
+        onCompare={(slot, id) => {
+          if (route.kind !== 'compare') return;
+          go({
+            kind: 'compare',
+            left: slot === 'left' ? id : route.left,
+            right: slot === 'right' ? id : route.right,
+          });
+        }}
       />
     </>
   );
 }
 
-function SheetHost({
-  sheet,
-  pins,
-  readings,
-  periods,
-  sources,
-  sections,
-  sheetMode,
-  map,
-  onClose,
-  onOpen,
-}: {
-  sheet: SheetState;
-  pins: Pin[];
-  readings: Entry[];
-  periods: Entry[];
-  sources: ReturnType<typeof loadCatalog>['sources'];
-  sections: ReturnType<typeof loadCatalog>['content']['sections'];
-  sheetMode: boolean;
-  map: GlobeControllerMap | null;
-  onClose: () => void;
-  onOpen: (entry: Entry) => void;
-}) {
-  if (!sheet) return null;
-  if (sheet.kind === 'site') {
-    const pin = pins.find((item) => item.id === sheet.id);
-    if (!pin) return null;
-    const body = <EntryBody entry={pin.entry} sources={sources} myths={pin.myths} />;
-    if (sheetMode || !map) return <Panel sheet label={pin.title} onClose={onClose}>{body}</Panel>;
-    return (
-      <DesktopPopup key={pin.id} map={map} lng={pin.lng} lat={pin.lat} onClose={onClose}>
-        {body}
-      </DesktopPopup>
-    );
-  }
-  if (sheet.kind === 'entry') {
-    const entry = findEntry(sections, sheet.id);
-    if (!entry) return null;
-    return (
-      <Panel sheet={sheetMode} label={entryTitle(entry)} onClose={onClose}>
-        <EntryBody entry={entry} sources={sources} />
-      </Panel>
-    );
-  }
-  if (sheet.kind === 'god') {
-    const god = GODS.find((item) => item.id === sheet.id);
-    if (!god) return null;
-    return (
-      <Panel sheet={sheetMode} label={god.name} onClose={onClose}>
-        <div className="sheet-copy">
-          <h2 className="popup-title">{god.name}</h2>
-          {god.links.map((link) => {
-            const entry = findEntry(sections, link.entryId);
-            if (!entry) return null;
-            return (
-              <article key={`${link.entryId}-${link.relation}`} className="myth-card" data-entry={entry.id}>
-                <p className="popup-place">{link.relation === 'born' ? 'Born' : 'Worshipped'}</p>
-                <p className="badge-row">
-                  <LabelBadge label={entry.label} />
-                </p>
-                <p className="popup-summary">{entry.text}</p>
-                <ReadingLines entry={entry} sources={sources} />
-                <button type="button" className="text-link" onClick={() => onOpen(entry)}>
-                  {entryTitle(entry)}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      </Panel>
-    );
-  }
-  if (sheet.kind === 'periods') {
-    return (
-      <Panel sheet={sheetMode} label="Period" onClose={onClose}>
-        <div className="sheet-copy">
-          {periods.map((period) => (
-            <article key={period.id} className="myth-card" data-entry={period.id}>
-              <h2 className="popup-title">{entryTitle(period)}</h2>
-              <p className="badge-row">
-                <LabelBadge label={period.label} />
-              </p>
-              <p className="popup-summary">{period.text}</p>
-              <SourceList ids={period.sources} sources={sources} />
-            </article>
-          ))}
-        </div>
-      </Panel>
-    );
-  }
-  if (sheet.kind === 'knowledge') {
-    return (
-      <Panel sheet={sheetMode} label="Knowledge" onClose={onClose}>
-        <div className="sheet-copy">
-          {Object.entries(sections).map(([key, entries]) => (
-            <section key={key} className="knowledge-section">
-              <h2 className="popup-title">{sectionHeading(key)}</h2>
-              <ul className="knowledge-list">
-                {entries.map((entry) => (
-                  <li key={entry.id}>
-                    <button
-                      type="button"
-                      className="knowledge-row"
-                      data-entry={entry.id}
-                      onClick={() => onOpen(entry)}
-                    >
-                      <span>{entryTitle(entry)}</span>
-                      <LabelBadge label={entry.label} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      </Panel>
-    );
-  }
-  if (sheet.kind === 'readings') {
-    return (
-      <Panel sheet={sheetMode} label="Readings" onClose={onClose}>
-        <div className="sheet-copy">
-          {readings.map((entry) => (
-            <article key={entry.id} className="myth-card" data-entry={entry.id}>
-              <h2 className="popup-title">{entry.primary_text ?? entryTitle(entry)}</h2>
-              <p className="badge-row">
-                <LabelBadge label={entry.label} />
-              </p>
-              <p className="popup-summary">{entry.text}</p>
-              <ReadingLines entry={entry} sources={sources} />
-              <SourceList ids={entry.sources} sources={sources} />
-            </article>
-          ))}
-        </div>
-      </Panel>
-    );
-  }
-  return (
-    <Panel sheet={sheetMode} label="Sources" onClose={onClose}>
-      <div className="sheet-copy" id="sources-notice">
-        <p className="popup-summary">{SOURCES_NOTICE}</p>
-        <ul className="sources">
-          {sources.map((source) => (
-            <li key={source.id}>
-              <a href={source.url} target="_blank" rel="noreferrer">
-                {source.title}
-              </a>
-              {' · '}
-              {source.author_org}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Panel>
-  );
+function focusPin(route: Route, pins: Pin[]): Pin | undefined {
+  if (route.kind === 'site') return pins.find((pin) => pin.id === route.id);
+  if (route.kind === 'story' || route.kind === 'entry') return pinForEntry(pins, route.id);
+  if (route.kind === 'god') return godPins(route.id, pins)[0];
+  return undefined;
 }
 
-type GlobeControllerMap = NonNullable<GlobeController['map']>;
-
-function findEntry(sections: Record<string, Entry[]>, id: string): Entry | undefined {
-  return entryById({ meta: { pack: '', version: 0, created: '' }, sections }, id);
+function godPins(id: string, pins: Pin[]): Pin[] {
+  const god = GODS.find((item) => item.id === id);
+  if (!god) return [];
+  return pins.filter((pin) => god.links.some((link) => pinForEntry([pin], link.entryId)));
 }
 
-function highlightFor(sheet: SheetState, pins: Pin[]): string[] | null {
-  if (!sheet) return null;
-  if (sheet.kind === 'site') return [sheet.id];
-  if (sheet.kind === 'entry') {
-    const pin = pinForEntry(pins, sheet.id);
+function highlightFor(route: Route, pins: Pin[]): string[] | null {
+  if (route.kind === 'site') return [route.id];
+  if (route.kind === 'story' || route.kind === 'entry') {
+    const pin = pinForEntry(pins, route.id);
     return pin ? [pin.id] : null;
   }
-  if (sheet.kind === 'god') {
-    const god = GODS.find((item) => item.id === sheet.id);
-    if (!god) return null;
-    const ids = pins.filter((pin) => god.links.some((link) => pinForEntry([pin], link.entryId))).map((pin) => pin.id);
+  if (route.kind === 'god') {
+    const ids = godPins(route.id, pins).map((pin) => pin.id);
     return ids.length > 0 ? ids : null;
   }
   return null;

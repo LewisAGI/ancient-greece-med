@@ -17,7 +17,7 @@ export function mentionsPlace(text: string, place: string): boolean {
   return new RegExp(`\\b${escaped}\\b`, 'i').test(text);
 }
 
-/** "Delphi (Pytho)" and "Cythera; Cyprus" become the names worth matching. */
+/** "Delphi (Pytho)", "Cythera; Cyprus", and "Olympia area" become the names worth matching. */
 export function placeKeys(place: string): string[] {
   const keys = new Set<string>();
   place.split(';').forEach((segment) => {
@@ -25,9 +25,16 @@ export function placeKeys(place: string): string[] {
     if (!part) return;
     const head = part.split('/')[0]?.trim() ?? part;
     const bare = head.split(/[,(]/)[0]?.trim() ?? head;
-    if (bare.length >= 4) keys.add(bare);
+    addPlaceKey(keys, bare);
+    const area = bare.match(/^(.+?)\s+area$/i);
+    if (area?.[1]) addPlaceKey(keys, area[1]);
   });
   return [...keys];
+}
+
+function addPlaceKey(keys: Set<string>, value: string): void {
+  const trimmed = value.trim();
+  if (trimmed.length >= 4) keys.add(trimmed);
 }
 
 export function buildPins(sections: Record<string, Entry[]>): Pin[] {

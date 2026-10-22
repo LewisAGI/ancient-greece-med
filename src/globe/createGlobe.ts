@@ -1,7 +1,7 @@
 import { Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
-import { LABEL_MIN_ZOOM, visibleLabelIds, type LabelBox } from '../labels';
-import { flyToBBox, type BBox } from './camera';
+import { LABEL_MIN_ZOOM, markerOffsets, visibleLabelIds, type LabelBox } from '../labels';
+import { flyToBBox, framePadding, settlePins, type BBox } from './camera';
 import { mapStyle } from './style';
 
 // Vite does not emit MapLibre's worker unless the URL is set. Without it the
@@ -27,8 +27,7 @@ export interface GlobeController {
   ready: Promise<void>;
   setPlaces(places: MapPlace[]): void;
   setHighlight(ids: string[] | null): void;
-  flyTo(bbox: BBox): void;
-  zoomIn(): void;
+  flyTo(bbox: BBox): Promise<void>;  zoomIn(): void;
   zoomOut(): void;
   onPick(handler: (hit: PickHit | null) => void): void;
   destroy(): void;
@@ -89,19 +88,44 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
   let places: MapPlace[] = [];
   let highlight: string[] | null = null;
   let swallowClick = false;
-  const markers = new Map<string, { marker: Marker; button: HTMLButtonElement; label: HTMLElement }>();
+  const markers = new Map<string, { marker: Marker; button: HTMLButtonElement; label: HTMLElement; leader: HTMLElement }>();
 
   const paintLabels = () => {
     const show = map.getZoom() >= LABEL_MIN_ZOOM;
-    const boxes: LabelBox[] = places.map((place) => {
+    const width = map.getContainer().clientWidth;
+    const height = map.getContainer().clientHeight;
+    const pad = width > 2 ? framePadding() : { top: 56, right: 72, bottom: 140, left: 72 };
+    const projected = places.map((place) => {
       const point = map.project([place.lng, place.lat]);
-      return { id: place.id, left: point.x - 46, top: point.y + 6, right: point.x + 46, bottom: point.y + 22 };
+      return { id: place.id, x: point.x, y: point.y };
+    });
+    const shifts = markerOffsets(projected, {
+      bounds: {
+        left: pad.left,
+        top: pad.top,
+        right: Math.max(pad.left + 36, width - pad.right),
+        bottom: Math.max(pad.top + 36, height - pad.bottom),
+      },
+    });
+    const boxes: LabelBox[] = projected.map((point) => {
+      const shift = shifts.get(point.id) ?? { dx: 0, dy: 0 };
+      const x = point.x + shift.dx;
+      const y = point.y + shift.dy;
+      return { id: point.id, left: x - 46, top: y + 6, right: x + 46, bottom: y + 22 };
     });
     const visible = show ? visibleLabelIds(boxes) : new Set<string>();
     const highlighted = new Set(highlight ?? []);
     places.forEach((place) => {
       const node = markers.get(place.id);
       if (!node) return;
+      const shift = shifts.get(place.id) ?? { dx: 0, dy: 0 };
+      node.marker.setOffset([shift.dx, shift.dy]);
+      const length = Math.hypot(shift.dx, shift.dy);
+      node.leader.hidden = length < 2;
+      if (length >= 2) {
+        node.leader.style.width = `${length}px`;
+        node.leader.style.transform = `rotate(${Math.atan2(-shift.dy, -shift.dx)}rad)`;
+      }
       node.button.classList.toggle('is-myth', place.myth);
       node.button.classList.toggle('is-selected', highlight != null && highlighted.has(place.id));
       node.button.classList.toggle('is-dim', highlight != null && !highlighted.has(place.id));
@@ -125,19 +149,22 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
       button.title = place.title;
       button.setAttribute('aria-label', place.title);
       button.dataset.place = place.id;
+      const leader = document.createElement('span');
+      leader.className = 'pin-leader';
+      leader.hidden = true;
       const dot = document.createElement('span');
       dot.className = 'dot';
       const label = document.createElement('span');
       label.className = 'pin-label';
       label.textContent = place.title;
-      button.append(dot, label);
+      button.append(leader, dot, label);
       button.addEventListener('click', (event) => {
         event.stopPropagation();
         swallowClick = true;
         pickHandler({ id: place.id, lat: place.lat, lng: place.lng });
       });
       const marker = new Marker({ element: button, anchor: 'center' }).setLngLat([place.lng, place.lat]).addTo(map);
-      markers.set(place.id, { marker, button, label });
+      markers.set(place.id, { marker, button, label, leader });
     });
     paintLabels();
     root.dataset.places = String(places.length);
@@ -150,6 +177,7 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
     }
     pickHandler(null);
   });
+  map.on('move', paintLabels);
   map.on('moveend', paintLabels);
   map.on('zoomend', paintLabels);
 
@@ -168,7 +196,27 @@ export function createGlobe(container: HTMLElement, root: HTMLElement): GlobeCon
       void ready.then(() => paintLabels());
     },
     flyTo(bbox) {
-      void ready.then(() => flyToBBox(map, bbox));
+      return ready.then(
+        () =>
+          new Promise<void>((resolve) => {
+            flyToBBox(map, bbox);
+            let settled = false;
+            const finish = () => {
+              if (settled) return;
+              settled = true;
+              settlePins(
+                map,
+                places.map((place) => ({ lng: place.lng, lat: place.lat })),
+              );
+              paintLabels();
+              resolve();
+            };
+            map.once('moveend', finish);
+            window.setTimeout(() => {
+              if (!map.isMoving()) finish();
+            }, 900);
+          }),
+      );
     },
     zoomIn() {
       map.zoomIn({ duration: 200 });

@@ -1,6 +1,21 @@
 export const LABELS = ['evidence', 'inference', 'abstract-only'] as const;
 export type EntryLabel = (typeof LABELS)[number];
 
+/** Short badges. A qualified label can carry more than one. */
+export function labelBadges(label: string): EntryLabel[] {
+  const badges: EntryLabel[] = [];
+  if (/\bevidence\b/i.test(label)) badges.push('evidence');
+  if (/\binference\b/i.test(label)) badges.push('inference');
+  if (/\babstract(?:-only)?\b/i.test(label) || /search-summary/i.test(label) || /\bsummary\b/i.test(label)) {
+    badges.push('abstract-only');
+  }
+  return badges;
+}
+
+export function isQualifiedLabel(label: string): boolean {
+  return label.length > 0 && label.length <= 160 && labelBadges(label).length > 0;
+}
+
 export interface Coords {
   lat: number;
   lon: number;
@@ -11,18 +26,28 @@ export interface Entry {
   id: string;
   text: string;
   sources: string[];
-  label: EntryLabel;
+  /** `evidence`, `inference`, `abstract-only`, or a qualified phrase that names those. */
+  label: string;
   coords?: Coords | null;
   uncertainty?: string;
   sensitivity?: string;
   debate?: string;
   start?: number;
   end?: number;
+  /** A single historical year, used by timeline rows. There is no year 0. */
+  year?: number;
   place?: string;
   /** Work and section for a public-domain primary text. */
   primary_text?: string;
+  /** Line or section citation shown on the card. */
+  citation?: string;
   country_region?: string | null;
   unesco_year?: number | null;
+  /**
+   * When false, the entry stays in the source file and is omitted from the published catalog.
+   * Omitted means included.
+   */
+  include?: boolean;
 }
 
 export interface ContentMeta {
@@ -59,8 +84,11 @@ const ENTRY_KEYS = new Set([
   'end',
   'place',
   'primary_text',
+  'citation',
   'country_region',
   'unesco_year',
+  'year',
+  'include',
 ]);
 
 export function parseContent(value: unknown): ContentPack {
@@ -161,8 +189,8 @@ function entryErrors(value: unknown, prefix: string, ids: Set<string>, errors: s
   if (id) ids.add(id);
   needString(record, 'text', errors, prefix);
   const label = needString(record, 'label', errors, prefix);
-  if (label && !LABELS.includes(label as EntryLabel)) {
-    errors.push(`${prefix}.label must be one of ${LABELS.join(', ')}`);
+  if (label && !isQualifiedLabel(label)) {
+    errors.push(`${prefix}.label must name evidence, inference, or abstract`);
   }
   const sources = record.sources;
   if (!Array.isArray(sources) || sources.some((item) => typeof item !== 'string' || item.trim() === '')) {
@@ -176,7 +204,12 @@ function entryErrors(value: unknown, prefix: string, ids: Set<string>, errors: s
   optionalString(record, 'debate', prefix, errors);
   optionalString(record, 'place', prefix, errors);
   optionalString(record, 'primary_text', prefix, errors);
+  optionalString(record, 'citation', prefix, errors);
   optionalString(record, 'country_region', prefix, errors);
+  if ('include' in record && typeof record.include !== 'boolean') {
+    errors.push(`${prefix}.include must be a boolean`);
+  }
+  optionalYear(record, 'year', prefix, errors);
   if ('unesco_year' in record && record.unesco_year != null) {
     const year = record.unesco_year;
     if (typeof year !== 'number' || !Number.isInteger(year)) errors.push(`${prefix}.unesco_year must be an integer`);

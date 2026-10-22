@@ -1,28 +1,22 @@
 import type { Pin } from '../pins';
 import { IconButton } from './IconButton';
-import { IconMyth, IconPlaces } from './icons';
+import { IconPlaces } from './icons';
 
 interface PlacesPopoutProps {
   pins: Pin[];
   open: boolean;
-  mythOnly: boolean;
   onToggle: () => void;
-  onToggleMyth: () => void;
   onSelect: (id: string) => void;
 }
 
-export function PlacesPopout({ pins, open, mythOnly, onToggle, onToggleMyth, onSelect }: PlacesPopoutProps) {
-  const shown = mythOnly ? pins.filter((pin) => pin.myths.length > 0) : pins;
+export function PlacesPopout({ pins, open, onToggle, onSelect }: PlacesPopoutProps) {
   return (
     <div className="tool-slot">
       <IconButton id="places-button" label="Places" expanded={open} onClick={onToggle}>
         <IconPlaces />
       </IconButton>
       <div id="places-panel" className="popout places-popout" hidden={!open}>
-        <IconButton label="Myth sites" pressed={mythOnly} onClick={onToggleMyth}>
-          <IconMyth />
-        </IconButton>
-        {shown.map((pin) => (
+        {pins.map((pin) => (
           <button
             key={pin.id}
             type="button"

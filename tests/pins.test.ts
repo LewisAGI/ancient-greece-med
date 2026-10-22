@@ -24,6 +24,8 @@ describe('pins', () => {
       's24',
       's26',
       's28',
+      's31',
+      's36',
     ]);
     expect(pins.some((pin) => pin.id === 's14' || pin.id === 's10' || pin.id === 's9')).toBe(false);
   });
@@ -32,8 +34,12 @@ describe('pins', () => {
     const delos = pins.find((pin) => pin.id === 's4');
     const delphi = pins.find((pin) => pin.id === 's2');
     const troy = pins.find((pin) => pin.id === 's8');
+    const olympia = pins.find((pin) => pin.id === 's3');
+    const athens = pins.find((pin) => pin.id === 's1');
     expect(delos?.myths.map((myth) => myth.id).sort()).toEqual(['m1', 'm8']);
-    expect(delphi?.myths.map((myth) => myth.id).sort()).toEqual(['m2', 'm9']);
+    expect(delphi?.myths.map((myth) => myth.id).sort()).toEqual(['m2', 'm23', 'm24', 'm25', 'm26', 'm27', 'm30', 'm9']);
+    expect(olympia?.myths.map((myth) => myth.id).sort()).toEqual(['m31', 'm32', 'm33', 'm34', 'm35', 'm4']);
+    expect(athens?.myths.map((myth) => myth.id).sort()).toEqual(['m36', 'm37', 'm38', 'm39', 'm40', 'm41']);
     expect(troy?.myths.map((myth) => myth.id)).toEqual(['m12']);
     expect(pins.some((pin) => pin.myths.some((myth) => myth.id === 'm3' || myth.id === 'm22'))).toBe(false);
   });
