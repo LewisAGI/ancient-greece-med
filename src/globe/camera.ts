@@ -92,8 +92,12 @@ export function framePadding(): { top: number; bottom: number; left: number; rig
   const right = (zoom?.width ?? 44) + 28;
   const rail = tools && tools.height > tools.width + 8 ? tools.right + 14 : 36;
   const toolRowTop = tools && tools.width > tools.height + 8 ? tools.top : null;
+  const attrib = visible('.maplibregl-ctrl-bottom-right');
   const timeTop = time ? time.top : window.innerHeight - 120;
-  const chromeTop = toolRowTop == null ? timeTop : Math.min(timeTop, toolRowTop);
+  const chromeCandidates = [timeTop];
+  if (toolRowTop != null) chromeCandidates.push(toolRowTop);
+  if (attrib) chromeCandidates.push(attrib.top);
+  const chromeTop = Math.min(...chromeCandidates);
   if (sheet && sheet.width > 40 && sheet.right < window.innerWidth * 0.7) {
     return {
       top,

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { loadCatalog } from '../src/data/load';
 import { publishContent } from '../src/data/publish';
 import { labelBadges, bindSources, mappedEntries, parseContent, type Entry } from '../src/data/schema';
-import { assertPublished } from '../vite.strip';
+import { assertPublished, isPackFile, stripExcludedContent } from '../vite.strip';
 
 const catalog = loadCatalog();
 const entries = Object.values(catalog.content.sections).flat();
@@ -18,7 +18,10 @@ describe('v3 content pack', () => {
     expect(catalog.content.sections.people).toHaveLength(12);
     expect(catalog.content.sections.timeline).toHaveLength(17);
     expect(catalog.content.sections.further_reading).toHaveLength(6);
-    expect(catalog.sources).toHaveLength(53);
+    expect(catalog.sources).toHaveLength(49);
+    ['egy-alex', 'ucl-alex', 'mac-empuries', 'mhm-massalia'].forEach((id) => {
+      expect(catalog.sources.some((source) => source.id === id)).toBe(false);
+    });
     const ids = new Set(catalog.sources.map((source) => source.id));
     entries.forEach((entry) => {
       expect(entry.sources.length).toBeGreaterThan(0);
@@ -117,5 +120,35 @@ describe('v3 content pack', () => {
 
     const extra = { ...catalog.content.sections.sites[0], invented: true };
     expect(() => parseContent({ meta: catalog.content.meta, sites: [extra] })).toThrow(/unknown field/);
+  });
+});
+
+describe('strip plugin paths', () => {
+  it('rewrites content and sources JSON and ignores every other module', () => {
+    expect(isPackFile('/workspace/data/content.json?import', 'content.json')).toBe(true);
+    expect(isPackFile('data/sources.json', 'sources.json')).toBe(true);
+    expect(isPackFile('/workspace/data/content.json.bak', 'content.json')).toBe(false);
+    expect(isPackFile('/workspace/src/data/load.ts', 'content.json')).toBe(false);
+    const plugin = stripExcludedContent();
+    if (typeof plugin.transform !== 'function') throw new Error('transform hook missing');
+    const transform = plugin.transform;
+    const call = (code: string, id: string) => transform.call({} as never, code, id);
+    expect(call('export const value = 1;', '/workspace/src/main.ts')).toBeNull();
+    expect(call('{}', '/workspace/data/README.md')).toBeNull();
+    const content = readFileSync('data/content.json', 'utf8');
+    const published = call(content, '/workspace/data/content.json?used');
+    expect(published).toMatchObject({ map: null });
+    expect(JSON.stringify(published)).not.toContain('Pharos lighthouse');
+    expect(JSON.stringify(published)).not.toContain('"s33"');
+    const sources = readFileSync('data/sources.json', 'utf8');
+    const stripped = call(sources, '/workspace/data/sources.json');
+    const serialized = JSON.stringify(stripped);
+    expect(serialized).not.toContain('egy-alex');
+    expect(serialized).not.toContain('ucl-alex');
+    expect(serialized).not.toContain('mac-empuries');
+    expect(serialized).not.toContain('mhm-massalia');
+    expect(serialized).not.toContain('Empúries');
+    expect(serialized).not.toContain('Marseille');
+    expect(serialized).toContain('unesco-delphi');
   });
 });

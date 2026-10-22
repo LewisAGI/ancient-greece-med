@@ -1,19 +1,26 @@
 import { expect, type Page, test } from '@playwright/test';
+import { MAX_PIN_OFFSET, NUDGE_MIN_ZOOM } from '../src/labels';
+import { SOURCES_NOTICE } from '../src/notice';
+import { EXCLUDED_IDS, EXCLUDED_PLACE_NAMES, ORPHAN_SOURCE_IDS } from '../vite.strip';
 
 declare global {
   interface Window {
     __greece: {
       map: {
         getProjection: () => { type: string };
+        getZoom: () => number;
         isMoving: () => boolean;
         isSourceLoaded: (id: string) => boolean;
+        project: (lngLat: [number, number]) => { x: number; y: number };
+        getContainer: () => HTMLElement;
+        easeTo: (options: { center: [number, number]; zoom: number; duration: number }) => void;
       };
-      places: { id: string; title: string }[];
+      places: { id: string; title: string; lat: number; lng: number }[];
     };
   }
 }
 
-const APP_ORIGIN = 'http://127.0.0.1:4173';
+const APP_ORIGIN = `http://127.0.0.1:${process.env.ANCIENT_GREECE_PORT || '4187'}`;
 let faults: string[] = [];
 
 test.beforeEach(async ({ page }) => {
@@ -62,9 +69,11 @@ test('globe, sourced pins, and icon labels', async ({ page }) => {
     const tools = document.querySelector('.key-wrap')?.getBoundingClientRect();
     const height = window.innerHeight;
     const width = window.innerWidth;
-    return [...document.querySelectorAll('.pin')]
+    return [...document.querySelectorAll<HTMLElement>('.pin, .cluster-badge')]
       .filter((element) => {
+        if (element.hidden) return false;
         const rect = element.getBoundingClientRect();
+        if (rect.width < 2 || rect.height < 2) return false;
         const underTime = Boolean(time) && rect.bottom > time!.top + 1;
         const underTools = Boolean(
           tools &&
@@ -80,11 +89,14 @@ test('globe, sourced pins, and icon labels', async ({ page }) => {
   });
   expect(covered).toEqual([]);
   const blocked = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('.pin')].flatMap((element) => {
+    [...document.querySelectorAll<HTMLElement>('.pin, .cluster-badge')].flatMap((element) => {
+      if (element.hidden) return [];
       const rect = element.getBoundingClientRect();
+      if (rect.width < 2 || rect.height < 2) return [];
       const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      if (hit === element || (hit != null && element.contains(hit))) return [];
-      return [element.dataset.place ?? 'pin'];
+      const host = element.closest('.cluster') ?? element;
+      if (hit === element || hit === host || (hit != null && host.contains(hit))) return [];
+      return [element.dataset.place ?? element.dataset.members ?? 'pin'];
     }),
   );
   expect(blocked).toEqual([]);
@@ -154,16 +166,17 @@ test('year slider, the year-zero step, and playback', async ({ page }) => {
 
 test('myth card, outside-Greece pin, unpinned site, readings, and sources', async ({ page }, testInfo) => {
   const sheet = testInfo.project.name !== 'desktop';
-  await page.locator('.pin[data-place="s2"]').click();
+  await openPlace(page, 's2');
   const card = sheet ? page.locator('.event-sheet') : page.locator('.maplibregl-popup');
   await expect(card).toBeVisible();
   await expect(card).toContainText('oracle of the Pythia');
   await expect(card.locator('.badge[data-label="evidence"]').first()).toHaveText('Evidence');
+  await expect(card.locator('.badge[data-label="tradition"]').first()).toHaveText('Tradition');
   await expect(card).toContainText('H.G. Evelyn-White · Project Gutenberg');
   await page.locator(sheet ? '.sheet-close' : '.maplibregl-popup-close-button').click();
   await expect(card).toHaveCount(0);
 
-  await page.locator('.pin[data-place="s8"]').click();
+  await openPlace(page, 's8');
   await expect(card).toContainText('Samuel Butler · Project Gutenberg');
   await page.locator(sheet ? '.sheet-close' : '.maplibregl-popup-close-button').click();
 
@@ -188,6 +201,10 @@ test('myth card, outside-Greece pin, unpinned site, readings, and sources', asyn
   await expect(notice).toContainText('UNESCO');
   await expect(notice).toContainText('Evelyn-White');
   await expect(notice).toContainText('Alexandria, Emporion, and Massalia are left out');
+  await expect(notice).not.toContainText('Empúries');
+  await expect(notice).not.toContainText('Marseille');
+  await expect(notice).not.toContainText('egy-alex');
+  await expect(notice).not.toContainText('UCL Digital Egypt');
 
   await page.getByRole('button', { name: 'Gods', exact: true }).click();
   await page.getByRole('button', { name: 'Apollo', exact: true }).click();
@@ -214,6 +231,23 @@ test('timeline, search, glossary, compare, and story pages', async ({ page }) =>
   await page.locator('#search-panel [data-entry="s31"]').click();
   const card = page.locator('.event-sheet, .maplibregl-popup');
   await expect(card).toContainText('Abu Mena');
+  await expect.poll(async () => page.evaluate(() => window.__greece.map.isMoving())).toBe(false);
+  const abuMena = await page.evaluate(() => {
+    const attrib = document.querySelector('.maplibregl-ctrl-attrib')?.getBoundingClientRect();
+    const pin = document.querySelector<HTMLElement>('.pin[data-place="s31"]');
+    const badge = document.querySelector<HTMLElement>('.cluster-badge[data-members~="s31"]');
+    const target = pin && !pin.hidden ? pin : badge;
+    if (!attrib || !target) return 'missing';
+    const box = target.getBoundingClientRect();
+    const overlaps =
+      box.width > 2 &&
+      box.right > attrib.left + 1 &&
+      box.left < attrib.right - 1 &&
+      box.bottom > attrib.top + 1 &&
+      box.top < attrib.bottom - 1;
+    return overlaps ? 'overlap' : 'clear';
+  });
+  expect(abuMena).toBe('clear');
   await page.locator('.sheet-close, .maplibregl-popup-close-button').click();
 
   await page.getByRole('button', { name: 'Filter', exact: true }).click();
@@ -248,6 +282,9 @@ test('timeline, search, glossary, compare, and story pages', async ({ page }) =>
   await page.locator('#compare-input').fill('Classical');
   await page.locator('#compare-panel [data-entry="per3"]').click();
   await expect(page.locator('#compare-panel')).toContainText('480 BCE');
+  const compareText = await page.locator('#compare-panel').innerText();
+  expect(compareText).not.toMatch(/\bBC\b/);
+  expect(compareText).not.toMatch(/\bAD\b/);
   await page.locator('.sheet-close').click();
 
   await page.goto('/#/story/m27');
@@ -263,6 +300,52 @@ test('timeline, search, glossary, compare, and story pages', async ({ page }) =>
   await page.locator('#app[data-ready="true"]').waitFor();
   await expect(page.locator('.badge[data-label="inference"]').first()).toHaveText('Inference');
   await expect(page.locator('.badge[data-label="evidence"]').first()).toHaveText('Evidence');
+
+  await page.goto('/#/story/m14');
+  await page.locator('#app[data-ready="true"]').waitFor();
+  const contested = page.locator('.event-sheet, .maplibregl-popup');
+  await expect(contested.locator('.badge[data-label="tradition"]').first()).toHaveText('Tradition');
+  await expect(contested.locator('[data-uncertainty="mythical geography"]')).toHaveText('mythical geography');
+});
+
+test('iPhone pins stay near their true points', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'iphone', 'the phone overview is where an uncapped nudge drifts');
+  const drifted = await page.evaluate(
+    ({ maxOffset, nudgeZoom }) => {
+      const map = window.__greece.map;
+      const frame = map.getContainer().getBoundingClientRect();
+      const limit = map.getZoom() < nudgeZoom ? 12 : maxOffset;
+      const misses: string[] = [];
+      document.querySelectorAll<HTMLElement>('.pin').forEach((element) => {
+        if (element.hidden) return;
+        const id = element.dataset.place ?? '';
+        const place = window.__greece.places.find((item) => item.id === id);
+        if (!place) return;
+        const projected = map.project([place.lng, place.lat]);
+        const rect = element.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - frame.left - projected.x;
+        const dy = rect.top + rect.height / 2 - frame.top - projected.y;
+        if (Math.hypot(dx, dy) > limit) misses.push(id);
+      });
+      document.querySelectorAll<HTMLElement>('.cluster-badge').forEach((badge) => {
+        const ids = (badge.dataset.members ?? '').split(' ').filter(Boolean);
+        const members = ids
+          .map((id) => window.__greece.places.find((item) => item.id === id))
+          .filter((item): item is (typeof window.__greece.places)[number] => Boolean(item));
+        if (members.length === 0) return;
+        const lng = members.reduce((sum, item) => sum + item.lng, 0) / members.length;
+        const lat = members.reduce((sum, item) => sum + item.lat, 0) / members.length;
+        const projected = map.project([lng, lat]);
+        const rect = badge.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - frame.left - projected.x;
+        const dy = rect.top + rect.height / 2 - frame.top - projected.y;
+        if (Math.hypot(dx, dy) > limit) misses.push(badge.dataset.members ?? 'cluster');
+      });
+      return misses;
+    },
+    { maxOffset: MAX_PIN_OFFSET, nudgeZoom: NUDGE_MIN_ZOOM },
+  );
+  expect(drifted).toEqual([]);
 });
 
 test('the published bundle omits excluded entry text', async ({ page }) => {
@@ -280,12 +363,64 @@ test('the published bundle omits excluded entry text', async ({ page }) => {
     expect(text, src).not.toContain('Pharos lighthouse');
     expect(text, src).not.toContain('Palaiapolis');
     expect(text, src).not.toContain('Protis and Gyptis');
+    const kept = [SOURCES_NOTICE, 'south of Alexandria'];
+    let scrubbed = text;
+    kept.forEach((phrase) => {
+      scrubbed = scrubbed.split(phrase).join('');
+    });
+    [...EXCLUDED_IDS, ...ORPHAN_SOURCE_IDS, ...EXCLUDED_PLACE_NAMES].forEach((phrase) => {
+      expect(scrubbed, src).not.toContain(phrase);
+    });
     if (!src.endsWith('.js')) continue;
     for (const match of text.matchAll(/\/assets\/[A-Za-z0-9._-]+/g)) {
       if (!seen.has(match[0])) queue.push(match[0]);
     }
   }
 });
+
+async function placeOnScreen(page: Page, id: string) {
+  const onScreen = await page.evaluate((placeId) => {
+    const place = window.__greece.places.find((item) => item.id === placeId);
+    if (!place) return false;
+    const map = window.__greece.map;
+    const frame = map.getContainer().getBoundingClientRect();
+    const point = map.project([place.lng, place.lat]);
+    return point.x >= 28 && point.y >= 28 && point.x <= frame.width - 28 && point.y <= frame.height - 28;
+  }, id);
+  if (onScreen) return;
+  await page.evaluate((placeId) => {
+    const place = window.__greece.places.find((item) => item.id === placeId);
+    if (!place) return;
+    const map = window.__greece.map;
+    map.easeTo({ center: [place.lng, place.lat], zoom: map.getZoom(), duration: 400 });
+  }, id);
+  await page.waitForFunction(() => !window.__greece.map.isMoving());
+}
+
+async function openPlace(page: Page, id: string) {
+  await placeOnScreen(page, id);
+  const pin = page.locator(`.pin[data-place="${id}"]`);
+  const item = page.locator(`.cluster-menu [data-place="${id}"]`);
+  const badge = page.locator(`.cluster-badge[data-members~="${id}"]`);
+  if (!(await pin.isVisible()) && (await badge.count()) > 0) {
+    await badge.click();
+    await page.waitForFunction(() => !window.__greece.map.isMoving());
+  }
+  if (await item.isVisible()) {
+    await item.click();
+    return;
+  }
+  const expanded = page.locator('.cluster-badge[aria-expanded="true"]');
+  if ((await pin.isVisible()) && (await expanded.count()) > 0) {
+    const covered = await pin.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return !(hit === element || (hit != null && element.contains(hit)));
+    });
+    if (covered) await expanded.first().click();
+  }
+  await pin.click();
+}
 
 async function expectNoHorizontalScroll(page: Page) {
   const widths = await page.evaluate(() => ({

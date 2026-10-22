@@ -4,7 +4,16 @@ import { GODS } from '../src/gods';
 import { entryById } from '../src/data/load';
 import { entryCredits, readingEntries, translatorCredit } from '../src/reading';
 import { formatYear } from '../src/years';
-import { LABEL_MIN_ZOOM, markerOffsets, visibleLabelIds, type LabelBox } from '../src/labels';
+import { withEra } from '../src/era';
+import { LABEL_MIN_ZOOM, MAX_PIN_OFFSET, markerOffsets, overlappingGroups, visibleLabelIds, type LabelBox } from '../src/labels';
+
+describe('withEra', () => {
+  it('writes BCE and CE without touching words that already use them', () => {
+    expect(withEra('ca. 700-480 BC and 330 AD')).toBe('ca. 700-480 BCE and 330 CE');
+    expect(withEra('480 BCE')).toBe('480 BCE');
+    expect(withEra('B.C.')).toBe('BCE');
+  });
+});
 
 describe('formatYear', () => {
   it('prints BCE and CE and has no year 0', () => {
@@ -87,6 +96,29 @@ describe('markerOffsets', () => {
     expect(by).toBeGreaterThanOrEqual(16);
     expect(bx).toBeLessThanOrEqual(224);
     expect(by).toBeLessThanOrEqual(184);
+  });
+
+  it('keeps every nudge inside twice the pin size', () => {
+    const points = Array.from({ length: 12 }, (_, index) => ({ id: `p${index}`, x: 400, y: 400 }));
+    const offsets = markerOffsets(points, {
+      maxOffset: MAX_PIN_OFFSET,
+      bounds: { left: 0, top: 0, right: 800, bottom: 800 },
+    });
+    offsets.forEach((shift) => {
+      expect(Math.hypot(shift.dx, shift.dy)).toBeLessThanOrEqual(MAX_PIN_OFFSET + 0.5);
+    });
+    expect(MAX_PIN_OFFSET).toBeLessThanOrEqual(64);
+  });
+
+  it('does not nudge at low zoom and groups the overlap', () => {
+    const points = [
+      { id: 'a', x: 40, y: 40 },
+      { id: 'b', x: 44, y: 48 },
+    ];
+    const offsets = markerOffsets(points, { nudge: false });
+    expect(offsets.get('a')).toEqual({ dx: 0, dy: 0 });
+    expect(offsets.get('b')).toEqual({ dx: 0, dy: 0 });
+    expect(overlappingGroups(points, offsets).map((group) => group.memberIds)).toEqual([['a', 'b']]);
   });
 
   it('separates a stack of pins that share one screen point', () => {

@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-/** The CI workflow installs Chromium only. WebKit is added when that browser can launch. */
+/** CI installs WebKit. Locally the landscape project is added when that browser can launch. */
 function webkitInstalled(): boolean {
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH || path.join(os.homedir(), '.cache', 'ms-playwright');
   let present = false;
@@ -18,6 +18,10 @@ function webkitInstalled(): boolean {
   );
 }
 
+const port = 4187;
+process.env.ANCIENT_GREECE_PORT = String(port);
+const origin = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: false,
@@ -27,15 +31,15 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: process.env.GITHUB_ACTIONS ? [['line'], ['github']] : [['line']],
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: origin,
     trace: 'retain-on-failure',
   },
   webServer: {
     command: process.env.CI
-      ? 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort'
-      : 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+      ? `npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`
+      : `npm run build && npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`,
+    url: origin,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [
@@ -65,7 +69,7 @@ export default defineConfig({
         isMobile: true,
       },
     },
-    ...(webkitInstalled()
+    ...(process.env.CI || webkitInstalled()
       ? [
           {
             name: 'landscape-webkit',

@@ -11,7 +11,9 @@ import { formatYear, yearInside, type YearBounds } from '../years';
 import type { GlobeController } from '../globe/createGlobe';
 import { IconButton } from './IconButton';
 import { IconCompare } from './icons';
-import { LabelBadge } from './LabelBadge';
+import { withEra } from '../era';
+import { LabelBadge, showsTradition } from './LabelBadge';
+import { Uncertainty } from './Sheets';
 import { DesktopPopup, EntryBody, Panel, ReadingLines, SourceList } from './Sheets';
 
 type GlobeMap = NonNullable<GlobeController['map']>;
@@ -86,10 +88,11 @@ export function SheetHost({
               <article key={`${link.entryId}-${link.relation}`} className="myth-card" data-entry={entry.id}>
                 <p className="popup-place">{link.relation === 'born' ? 'Born' : 'Worshipped'}</p>
                 <p className="badge-row">
-                  <LabelBadge label={entry.label} />
+                  <LabelBadge label={entry.label} tradition={showsTradition(entry.id)} />
                 </p>
-                <p className="popup-summary">{entry.text}</p>
-                {entry.citation ? <p className="citation">{entry.citation}</p> : null}
+                <p className="popup-summary">{withEra(entry.text)}</p>
+                {entry.citation ? <p className="citation">{withEra(entry.citation)}</p> : null}
+                <Uncertainty entry={entry} />
                 <ReadingLines entry={entry} sources={sources} />
                 <button type="button" className="text-link" onClick={() => onOpen(entry)}>
                   {entryTitle(entry)}
@@ -129,11 +132,12 @@ export function SheetHost({
         <div className="sheet-copy">
           {readings.map((entry) => (
             <article key={entry.id} className="myth-card" data-entry={entry.id}>
-              <h2 className="popup-title">{entry.primary_text ?? entry.citation ?? entryTitle(entry)}</h2>
+              <h2 className="popup-title">{withEra(entry.primary_text ?? entry.citation ?? entryTitle(entry))}</h2>
               <p className="badge-row">
-                <LabelBadge label={entry.label} />
+                <LabelBadge label={entry.label} tradition={showsTradition(entry.id)} />
               </p>
-              <p className="popup-summary">{entry.text}</p>
+              <p className="popup-summary">{withEra(entry.text)}</p>
+              <Uncertainty entry={entry} />
               <ReadingLines entry={entry} sources={sources} />
               <SourceList ids={entry.sources} sources={sources} />
               <button type="button" className="text-link" onClick={() => onOpen(entry)}>
@@ -152,7 +156,9 @@ export function SheetHost({
           <RowList
             entries={sections.timeline ?? []}
             onOpen={onTimeline}
-            labelFor={(entry) => (entry.year != null ? `${formatYear(entry.year)} · ${entryTitle(entry)}` : entryTitle(entry))}
+            labelFor={(entry) =>
+              withEra(entry.year != null ? `${formatYear(entry.year)} · ${entryTitle(entry)}` : entryTitle(entry))
+            }
             extra={(entry) => ({
               'data-year': entry.year != null ? String(entry.year) : '',
               'data-in-range': entry.year != null && yearInside(entry.year, bounds) ? 'true' : 'false',
@@ -305,9 +311,9 @@ function EntryList({
         <article key={period.id} className="myth-card" data-entry={period.id}>
           <h2 className="popup-title">{entryTitle(period)}</h2>
           <p className="badge-row">
-            <LabelBadge label={period.label} />
+            <LabelBadge label={period.label} tradition={showsTradition(period.id)} />
           </p>
-          <p className="popup-summary">{period.text}</p>
+          <p className="popup-summary">{withEra(period.text)}</p>
           <SourceList ids={period.sources} sources={sources} />
           <button type="button" className="text-link" onClick={() => onOpen(period)}>
             {entryTitle(period)}
@@ -342,7 +348,7 @@ function RowList({
           >
             <span>{labelFor(entry)}</span>
             <span className="badge-row">
-              <LabelBadge label={entry.label} />
+              <LabelBadge label={entry.label} tradition={showsTradition(entry.id)} />
             </span>
           </button>
         </li>

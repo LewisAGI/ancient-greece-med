@@ -5,8 +5,9 @@ import type { Entry, SourceRecord } from '../data/schema';
 import { relatedEntries } from '../explore';
 import { entryCredits } from '../reading';
 import { entryTitle } from '../titles';
+import { withEra } from '../era';
 import { formatYear } from '../years';
-import { LabelBadge } from './LabelBadge';
+import { LabelBadge, showsTradition } from './LabelBadge';
 import { clearSheetChrome, placeSheet, popupNudge, prefersSheet } from './sheetLayout';
 
 export function usePrefersSheet(): boolean {
@@ -37,10 +38,11 @@ export function EntryBody({
     <div className="sheet-copy" data-entry={entry.id}>
       <h2 className="popup-title">{entryTitle(entry)}</h2>
       <p className="badge-row">
-        <LabelBadge label={entry.label} />
+        <LabelBadge label={entry.label} tradition={showsTradition(entry.id)} />
       </p>
-      <p className="popup-summary">{entry.text}</p>
-      {entry.citation ? <p className="citation">{entry.citation}</p> : null}
+      <p className="popup-summary">{withEra(entry.text)}</p>
+      {entry.citation ? <p className="citation">{withEra(entry.citation)}</p> : null}
+      <Uncertainty entry={entry} />
       <ReadingLines entry={entry} sources={sources} />
       <FactList entry={entry} />
       <SourceList ids={entry.sources} sources={sources} />
@@ -49,10 +51,11 @@ export function EntryBody({
         <article key={myth.id} className="myth-card" data-entry={myth.id}>
           <h3 className="popup-title">{entryTitle(myth)}</h3>
           <p className="badge-row">
-            <LabelBadge label={myth.label} />
+            <LabelBadge label={myth.label} tradition={showsTradition(myth.id)} />
           </p>
-          <p className="popup-summary">{myth.text}</p>
-          {myth.citation ? <p className="citation">{myth.citation}</p> : null}
+          <p className="popup-summary">{withEra(myth.text)}</p>
+          {myth.citation ? <p className="citation">{withEra(myth.citation)}</p> : null}
+          <Uncertainty entry={myth} />
           <ReadingLines entry={myth} sources={sources} />
           <FactList entry={myth} />
           <SourceList ids={myth.sources} sources={sources} />
@@ -91,7 +94,7 @@ export function CrossLinks({
 
 function linkLabel(entry: Entry): string {
   if (!entry.citation) return entryTitle(entry);
-  return `${entryTitle(entry)} · ${entry.citation}`;
+  return withEra(`${entryTitle(entry)} · ${entry.citation}`);
 }
 
 export function ReadingLines({ entry, sources }: { entry: Entry; sources: SourceRecord[] }) {
@@ -99,7 +102,7 @@ export function ReadingLines({ entry, sources }: { entry: Entry; sources: Source
   if (!entry.primary_text && credits.length === 0) return null;
   return (
     <div className="reading-credit">
-      {entry.primary_text && <p className="popup-place">{entry.primary_text}</p>}
+      {entry.primary_text && <p className="popup-place">{withEra(entry.primary_text)}</p>}
       {credits.map((credit) => (
         <p key={credit} className="credit">
           {credit}
@@ -109,12 +112,20 @@ export function ReadingLines({ entry, sources }: { entry: Entry; sources: Source
   );
 }
 
+export function Uncertainty({ entry }: { entry: Entry }) {
+  if (!entry.uncertainty) return null;
+  return (
+    <p className="uncertainty" data-uncertainty={entry.uncertainty}>
+      {entry.uncertainty}
+    </p>
+  );
+}
+
 function FactList({ entry }: { entry: Entry }) {
   const facts: { label: string; value: string }[] = [];
   if (entry.year != null) facts.push({ label: 'Year', value: formatYear(entry.year) });
   if (entry.coords?.source_format) facts.push({ label: 'Coordinates', value: entry.coords.source_format });
   if (entry.unesco_year) facts.push({ label: 'UNESCO', value: String(entry.unesco_year) });
-  if (entry.uncertainty) facts.push({ label: 'Uncertainty', value: entry.uncertainty });
   if (entry.sensitivity) facts.push({ label: 'Sensitivity', value: entry.sensitivity });
   if (entry.debate) facts.push({ label: 'Debate', value: entry.debate });
   if (facts.length === 0) return null;
@@ -254,7 +265,7 @@ export function DesktopPopup({
           bottom: Math.max(rect.bottom, close.bottom),
         }
       : rect;
-    const obstacles = ['.zoom', '.key-wrap', '.time', '.wordmark'].flatMap((selector) => {
+    const obstacles = ['.zoom', '.key-wrap', '.time', '.wordmark', '.maplibregl-ctrl-bottom-right'].flatMap((selector) => {
       const node = document.querySelector(selector);
       if (!node) return [];
       const obstacle = node.getBoundingClientRect();

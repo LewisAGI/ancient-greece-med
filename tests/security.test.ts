@@ -11,6 +11,10 @@ describe('security headers and CI', () => {
     expect(SECURITY_HEADERS['Content-Security-Policy']).toContain("default-src 'self'");
     expect(SECURITY_HEADERS['Content-Security-Policy']).toContain('https://gibs.earthdata.nasa.gov');
     expect(SECURITY_HEADERS['X-Content-Type-Options']).toBe('nosniff');
+    expect(headers).toContain(`Permissions-Policy: ${SECURITY_HEADERS['Permissions-Policy']}`);
+    expect(headers).toContain(`Strict-Transport-Security: ${SECURITY_HEADERS['Strict-Transport-Security']}`);
+    expect(SECURITY_HEADERS['Permissions-Policy']).toContain('geolocation=()');
+    expect(SECURITY_HEADERS['Strict-Transport-Security']).toContain('max-age=31536000');
   });
 
   it('pins actions by commit and grants only contents read', () => {
@@ -20,5 +24,7 @@ describe('security headers and CI', () => {
     expect(workflow).toMatch(/actions\/setup-node@[0-9a-f]{40}/);
     expect(workflow).not.toMatch(/uses:\s+actions\/[a-z0-9-]+@v\d/);
     expect(workflow).not.toMatch(/contents:\s+write/);
+    expect(workflow).not.toMatch(/cache:\s*npm/);
+    expect(workflow).toContain('webkit');
   });
 });

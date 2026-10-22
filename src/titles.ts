@@ -1,4 +1,5 @@
 import type { Entry } from './data/schema';
+import { withEra } from './era';
 
 /** Short heading taken from the entry. Place names win; otherwise the opening clause. */
 export function entryTitle(entry: Entry): string {
@@ -13,8 +14,8 @@ export function entryTitle(entry: Entry): string {
   const colon = comma.split(':')[0]?.trim() ?? comma;
   const chosen = colon.length >= 3 && colon.length <= 42 ? colon : comma.length <= 48 ? comma : cut;
   const head = chosen.replace(/\.$/, '');
-  if (head.length <= 48) return head;
-  return `${head.slice(0, 45).trimEnd()}…`;
+  const title = head.length <= 48 ? head : `${head.slice(0, 45).trimEnd()}…`;
+  return withEra(title);
 }
 
 export function sectionHeading(key: string): string {
